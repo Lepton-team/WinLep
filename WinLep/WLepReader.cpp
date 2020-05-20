@@ -47,6 +47,10 @@ std::string WLep::WLepReader::debug_str() {
 
 WLep::WLepReader::WLepReader(const std::string const &filename)
 	: filename(filename) {
+	if (filename.empty()) {
+		throw std::invalid_argument("Filename cannot be empty!");
+	}
+
 	file.open(filename, std::ios::in | std::ios::binary);
 
 	// Stop eating new lines in binary mode!!!

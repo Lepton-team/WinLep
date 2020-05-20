@@ -71,7 +71,7 @@ std::string WLep::WLepWriter::debug_str() {
 }
 
 void WLep::WLepWriter::open_fstream(std::string &filename) {
-	if (!this->filename.empty() && !this->file.is_open()) {
+	if (!this->file.is_open()) {
 		file.open(filename, std::ios::in | std::ios::binary);
 	}
 }

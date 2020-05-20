@@ -36,13 +36,12 @@ bool WLep::WLepHeader::is_big_endian() {
 
 WLep::WLepHeader::WLepHeader(std::string const &thumbnail_filename) {
 	if (thumbnail_filename.empty()) {
-		throw std::exception("Thumbnail filename cannot be empty!");
+		throw std::invalid_argument("Thumbnail filename cannot be empty!");
 	}
 
 	this->data = std::vector<uChar>();
 	this->thumbnail_size_arr = std::vector<uChar>();
 	this->exif_size_arr = std::vector<uChar>();
-
 	this->header_prefix = std::vector<uChar>();
 	this->version = std::vector<uChar>();
 
@@ -57,7 +56,6 @@ WLep::WLepHeader::WLepHeader(std::string const &thumbnail_filename) {
 
 	uChar *buf = new uChar[WLepConstants::thumbnail_size_size];
 	memcpy(buf, (uChar *)&f_size, sizeof(uChar) * WLepConstants::thumbnail_size_size);
-
 	WLepUtils::VectorUtil::to_vector(this->thumbnail_size_arr, buf, WLepConstants::thumbnail_size_size);
 
 	delete[] buf;
