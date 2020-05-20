@@ -129,12 +129,16 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="WLepHeader.cpp" />
     <ClCompile Include="WLepReader.cpp" />
+    <ClCompile Include="WLepWriter.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="FileUtils.h" />
+    <ClInclude Include="StringUtil.h" />
+    <ClInclude Include="VectorUtil.h" />
     <ClInclude Include="WLepConstants.h" />
     <ClInclude Include="WLepHeader.h" />
     <ClInclude Include="WLepReader.h" />
-    <ClInclude Include="WLepUtils.h" />
+    <ClInclude Include="WLepWriter.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -24,6 +24,9 @@
     <ClCompile Include="WLepReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="WLepWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="WLepHeader.h">
@@ -32,10 +35,19 @@
     <ClInclude Include="WLepReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="WLepUtils.h">
+    <ClInclude Include="WLepConstants.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="WLepConstants.h">
+    <ClInclude Include="WLepWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VectorUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FileUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StringUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

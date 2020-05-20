@@ -4,8 +4,7 @@
 #include <string>
 #include <sstream>
 #include "WLepHeader.h"
-
-typedef std::basic_fstream<unsigned char, std::char_traits<unsigned char>> uFstream;
+#include "VectorUtil.h"
 
 namespace WLep {
 	class WLepReader {
@@ -18,10 +17,8 @@ namespace WLep {
 		const std::streampos thumbnail_size_start_pos = version_start_pos + std::streampos(WLepConstants::version_size);
 		const std::streampos thumbnail_start_pos = thumbnail_size_start_pos + std::streampos(WLepConstants::thumbnail_size_size);
 
-		std::string hex_vec_to_hex_str(std::vector<unsigned char> vec);
-		size_t hex_vec_to_int(std::vector<unsigned char> vec);
-
 		void read_from_file_to_vec(std::vector<unsigned char> &vec, size_t bytes);
+		void close_fstream();
 
 	public:
 		WLep::WLepHeader header;
@@ -30,7 +27,6 @@ namespace WLep {
 		~WLepReader();
 
 		std::string debug_str();
-		void read_all(bool keep_file_open);
-		void close_fstream();
+		void read_header();
 	};
 }
