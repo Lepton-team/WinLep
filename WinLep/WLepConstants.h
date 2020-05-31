@@ -4,7 +4,8 @@
 typedef std::basic_fstream<unsigned char, std::char_traits<unsigned char>> uFstream;
 typedef unsigned char uChar;
 
-namespace WLepConstants {
+namespace wlepconstants {
+	//
 	static const unsigned int version_size = 3; // Bytes
 	static const unsigned int thumbnail_size_size = 4; // Bytes
 	static const unsigned int exif_size_size = 4; // Bytes

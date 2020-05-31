@@ -50,5 +50,8 @@
     <ClInclude Include="StringUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ProcessUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

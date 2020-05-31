@@ -5,12 +5,12 @@
 #include "WLepConstants.h"
 #include "VectorUtil.h"
 
-namespace WLep {
+namespace wlep {
 	class WLepHeader {
 	private:
-		std::streampos file_size(std::ifstream &file);
-		std::vector<unsigned char> create_thumbnail_data(std::ifstream &thumbnail);
-		bool is_big_endian();
+		std::streampos calculateFileSize(std::ifstream &file);
+		std::vector<unsigned char> createThumbnailData(std::ifstream &thumbnail);
+		bool isBigEndian();
 
 	public:
 		std::vector<unsigned char> thumbnail_size_arr;

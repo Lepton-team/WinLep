@@ -3,7 +3,7 @@
 #include <string>
 #include <sstream>
 
-namespace WLepUtils {
+namespace wleputils {
 	static class VectorUtil {
 	public:
 		/*
@@ -26,7 +26,7 @@ namespace WLepUtils {
 			Converts an array to a vector
 		*/
 		template <typename T>
-		static inline void to_vector(std::vector<T> &vec, T *arr, const size_t size) {
+		static inline void arrayToVector(std::vector<T> &vec, T *arr, const size_t size) {
 			vec.assign(arr, arr + size);
 		}
 
@@ -34,7 +34,7 @@ namespace WLepUtils {
 			Converts a vector of bytes to one hexadecimal string
 		*/
 		template <typename T>
-		static inline std::string hex_vec_to_hex_str(std::vector<T> &vec) {
+		static inline std::string hexVectorToHexString(std::vector<T> &vec) {
 			std::string hex_str = "";
 			for (unsigned char c : vec) {
 				std::stringstream stream;
@@ -49,8 +49,8 @@ namespace WLepUtils {
 			Converts a vector of bytes to an unsigned integer
 		*/
 		template <typename T>
-		static inline size_t hex_vec_to_int(std::vector<T> &vec) {
-			std::string hex_str = WLepUtils::VectorUtil::hex_vec_to_hex_str(vec);
+		static inline size_t hexVectorToInt(std::vector<T> &vec) {
+			std::string hex_str = wleputils::VectorUtil::hexVectorToHexString(vec);
 			std::istringstream converter(hex_str);
 			size_t value;
 			converter >> std::hex >> value;

@@ -1,49 +1,49 @@
 #include "WLepWriter.h"
 
-WLep::WLepWriter::WLepWriter(std::string &filename, WLep::WLepHeader &header)
+wlep::WLepWriter::WLepWriter(std::string &filename, wlep::WLepHeader &header)
 	:header(header) {
 	if (filename.empty()) {
 		throw std::invalid_argument("Filename cannot be empty!");
 	}
 
-	if (WLepUtils::StringUtil::ends_with(filename, WLepConstants::file_extension)) {
-		filename.append(WLepConstants::file_extension);
+	if (wleputils::StringUtil::endsWith(filename, wlepconstants::file_extension)) {
+		filename.append(wlepconstants::file_extension);
 	}
 
-	open_fstream(filename);
+	openFileStream(filename);
 
-	this->filename = filename;
+	this->filename_ = filename;
 }
 
-WLep::WLepWriter::WLepWriter(std::string &filename, const std::string &thumbnail_filename) {
+wlep::WLepWriter::WLepWriter(std::string &filename, const std::string &thumbnail_filename) {
 	if (filename.empty() || thumbnail_filename.empty()) {
 		throw std::invalid_argument("Filename cannot be empty!");
 	}
 
-	this->header = WLep::WLepHeader(thumbnail_filename);
+	this->header = wlep::WLepHeader(thumbnail_filename);
 
-	if (!WLepUtils::StringUtil::ends_with(filename, WLepConstants::file_extension)) {
-		filename.append(WLepConstants::file_extension);
+	if (!wleputils::StringUtil::endsWith(filename, wlepconstants::file_extension)) {
+		filename.append(wlepconstants::file_extension);
 	}
 
-	open_fstream(filename);
+	openFileStream(filename);
 
-	this->filename = filename;
+	this->filename_ = filename;
 }
 
-WLep::WLepWriter::~WLepWriter() {
-	close_fstream();
+wlep::WLepWriter::~WLepWriter() {
+	closeFileStream();
 }
 
-size_t WLep::WLepWriter::write_header() {
+size_t wlep::WLepWriter::writeHeader() {
 	size_t bytes_written = 0;
 	const int items_to_write = 4;
 
 	size_t bytes_written_items[items_to_write] = {
-		WLepUtils::FileUtil::write_to_file<uChar>(file, this->header.header_prefix),
-		WLepUtils::FileUtil::write_to_file<uChar>(file, this->header.version),
-		WLepUtils::FileUtil::write_to_file<uChar>(file, this->header.thumbnail_size_arr),
-		WLepUtils::FileUtil::write_to_file<uChar>(file, this->header.thumbnail_data)
+		wleputils::FileUtil::writeToFile<uChar>(file_, this->header.header_prefix),
+		wleputils::FileUtil::writeToFile<uChar>(file_, this->header.version),
+		wleputils::FileUtil::writeToFile<uChar>(file_, this->header.thumbnail_size_arr),
+		wleputils::FileUtil::writeToFile<uChar>(file_, this->header.thumbnail_data)
 	};
 
 	for (int i = 0; i < items_to_write; i++) {
@@ -56,28 +56,28 @@ size_t WLep::WLepWriter::write_header() {
 	return bytes_written;
 }
 
-std::string WLep::WLepWriter::debug_str() {
+std::string wlep::WLepWriter::debug_str() {
 	std::string res = "";
 	res.append("\nWritten header prefix: ")
-		.append(WLepUtils::VectorUtil::hex_vec_to_hex_str(this->header.header_prefix))
+		.append(wleputils::VectorUtil::hexVectorToHexString(this->header.header_prefix))
 		.append("\nWritten version: ")
-		.append(WLepUtils::VectorUtil::hex_vec_to_hex_str(this->header.version))
+		.append(wleputils::VectorUtil::hexVectorToHexString(this->header.version))
 		.append("\nWritten thumbnail size: ")
 		.append(std::to_string(this->header.thumbnail_size))
 		.append(" B\t-> 0x")
-		.append(WLepUtils::VectorUtil::hex_vec_to_hex_str(this->header.thumbnail_size_arr));
+		.append(wleputils::VectorUtil::hexVectorToHexString(this->header.thumbnail_size_arr));
 
 	return res;
 }
 
-void WLep::WLepWriter::open_fstream(std::string &filename) {
-	if (!this->file.is_open()) {
-		file.open(filename, std::ios::in | std::ios::binary);
+void wlep::WLepWriter::openFileStream(std::string &filename) {
+	if (!this->file_.is_open()) {
+		this->file_.open(filename, std::ios::in | std::ios::binary);
 	}
 }
 
-void WLep::WLepWriter::close_fstream() {
-	if (this->file.is_open()) {
-		this->file.close();
+void wlep::WLepWriter::closeFileStream() {
+	if (this->file_.is_open()) {
+		this->file_.close();
 	}
 }

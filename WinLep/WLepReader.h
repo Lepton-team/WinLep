@@ -6,27 +6,27 @@
 #include "WLepHeader.h"
 #include "VectorUtil.h"
 
-namespace WLep {
+namespace wlep {
 	class WLepReader {
 	private:
-		const std::string const filename;
-		uFstream file;
+		const std::string const filename_;
+		uFstream file_;
 
-		const std::streampos prefix_start_pos = 0;
-		const std::streampos version_start_pos = prefix_start_pos + std::streampos(WLepConstants::header_prefix_size);
-		const std::streampos thumbnail_size_start_pos = version_start_pos + std::streampos(WLepConstants::version_size);
-		const std::streampos thumbnail_start_pos = thumbnail_size_start_pos + std::streampos(WLepConstants::thumbnail_size_size);
+		const std::streampos prefix_start_pos_ = 0;
+		const std::streampos version_start_pos_ = prefix_start_pos_ + std::streampos(wlepconstants::header_prefix_size);
+		const std::streampos thumbnail_size_start_pos_ = version_start_pos_ + std::streampos(wlepconstants::version_size);
+		const std::streampos thumbnail_start_pos_ = thumbnail_size_start_pos_ + std::streampos(wlepconstants::thumbnail_size_size);
 
-		void read_from_file_to_vec(std::vector<unsigned char> &vec, size_t bytes);
-		void close_fstream();
+		void readFromFileToVector(std::vector<unsigned char> &vec, size_t bytes);
+		void closeFileStream();
 
 	public:
-		WLep::WLepHeader header;
+		wlep::WLepHeader header;
 
 		WLepReader(const std::string &filename);
 		~WLepReader();
 
 		std::string debug_str();
-		void read_header();
+		void readHeader();
 	};
 }

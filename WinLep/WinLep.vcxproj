@@ -133,6 +133,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FileUtils.h" />
+    <ClInclude Include="ProcessUtil.h" />
     <ClInclude Include="StringUtil.h" />
     <ClInclude Include="VectorUtil.h" />
     <ClInclude Include="WLepConstants.h" />

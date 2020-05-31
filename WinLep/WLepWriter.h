@@ -6,24 +6,24 @@
 #include "FileUtils.h"
 #include "StringUtil.h"
 
-namespace WLep {
+namespace wlep {
 	class WLepWriter {
 	private:
-		uFstream file;
-		std::string filename;
+		uFstream file_;
+		std::string filename_;
 
-		void open_fstream(std::string &filename);
-		void close_fstream();
+		void openFileStream(std::string &filename);
+		void closeFileStream();
 
 	public:
-		WLep::WLepHeader header;
+		wlep::WLepHeader header;
 
-		WLepWriter(std::string &filename, WLep::WLepHeader &header);
+		WLepWriter(std::string &filename, wlep::WLepHeader &header);
 		WLepWriter(std::string &filename, const std::string &thumbnail_filename);
 
 		~WLepWriter();
 
-		size_t write_header();
+		size_t writeHeader();
 		std::string debug_str();
 	};
 }

@@ -9,7 +9,7 @@ typedef unsigned char uChar;
 	Once write fails, all further operations on the stream are no-ops, until the error is cleared.
 	Including tellp, which is required to return -1 if any previous operation has failed.
 */
-namespace WLepUtils {
+namespace wleputils {
 	static class FileUtil {
 	public:
 		/*
@@ -17,9 +17,13 @@ namespace WLepUtils {
 			Returns the bytes written
 		*/
 		template<typename T>
-		static inline size_t write_to_file(uFstream &file, std::vector<T> &data) {
+		static inline size_t writeToFile(uFstream &file, std::vector<T> &data) {
 			size_t before = file.tellp();
-			file.write((uChar *)&data[0], sizeof(T) * data.size());
+			try {
+				file.exceptions(std::fstream::failbit);
+				file.write((uChar *)&data[0], sizeof(T) * data.size());
+			} catch (std::ios_base::failure & ex) {
+			}
 			size_t pos = file.tellp();
 
 			return pos < 0 ? -1 : pos - before;
@@ -30,7 +34,7 @@ namespace WLepUtils {
 			Returns the bytes written
 		*/
 		template<typename T>
-		static inline size_t write_to_file(uFstream &file, T *data, size_t size) {
+		static inline size_t writeToFile(uFstream &file, T *data, size_t size) {
 			size_t before = file.tellp();
 			file.write((uChar *)&data[0], sizeof(T) * size);
 			size_t pos = file.tellp();
@@ -43,7 +47,7 @@ namespace WLepUtils {
 			Returns the bytes written
 		*/
 		template<typename T>
-		static inline size_t write_to_file(uFstream &file, T &t) {
+		static inline size_t writeToFile(uFstream &file, T &t) {
 			size_t before = file.tellp();
 			file.write((uChar *)&t, sizeof(T));
 			size_t pos = file.tellp();
