@@ -3,10 +3,10 @@
 #include <sstream>
 #include <string>
 #include <Windows.h>
-#include "ProcessUtil.h"
 
-#include "WLepReader.h"
-#include "WLepWriter.h"
+#include "process_util.h"
+#include "wlep_reader.h"
+#include "wlep_writer.h"
 
 std::string out_filename = "out.wlep";
 std::string test_lep_filename = "test.wlep";
@@ -16,7 +16,6 @@ std::string test_jpg_filename = "test.jpg";
 /*
 	This code has been written according to Google's C++ style standards.
 	If you were to contribute to this, please use this coding style.
-
 	https://google.github.io/styleguide/cppguide.html
 
 	Since C++11, you may want to use either snake_case or camelCase for function names.

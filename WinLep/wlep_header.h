@@ -2,8 +2,8 @@
 #include <string>
 #include <fstream>
 #include <vector>
-#include "WLepConstants.h"
-#include "VectorUtil.h"
+#include "wlep_constants.h"
+#include "vector_util.h"
 
 namespace wlep {
 	class WLepHeader {

@@ -1,4 +1,4 @@
-#include "WLepHeader.h"
+#include "wlep_header.h"
 
 std::streampos wlep::WLepHeader::calculateFileSize(std::ifstream &file) {
 	file.seekg(0, file.beg);

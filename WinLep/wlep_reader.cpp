@@ -1,4 +1,4 @@
-#include "WLepReader.h"
+#include "wlep_reader.h"
 
 void wlep::WLepReader::readHeader() {
 	if (!this->file_.is_open()) {

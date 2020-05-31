@@ -3,8 +3,8 @@
 #include <fstream>
 #include <string>
 #include <sstream>
-#include "WLepHeader.h"
-#include "VectorUtil.h"
+#include "wlep_header.h"
+#include "vector_util.h"
 
 namespace wlep {
 	class WLepReader {

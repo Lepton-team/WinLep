@@ -1,4 +1,4 @@
-#include "WLepWriter.h"
+#include "wlep_writer.h"
 
 wlep::WLepWriter::WLepWriter(std::string &filename, wlep::WLepHeader &header)
 	:header(header) {

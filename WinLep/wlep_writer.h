@@ -1,10 +1,10 @@
 #pragma once
 
 #include <fstream>
-#include "WLepConstants.h"
-#include "WLepHeader.h"
-#include "FileUtils.h"
-#include "StringUtil.h"
+#include "wlep_constants.h"
+#include "wlep_header.h"
+#include "file_util.h"
+#include "string_util.h"
 
 namespace wlep {
 	class WLepWriter {
