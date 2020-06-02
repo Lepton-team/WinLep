@@ -37,6 +37,21 @@ wlep::WLepWriter::WLepWriter(std::string &filename, const std::string &thumbnail
 	wleputils::FileUtil::openFileStream(this->file_, this->filename_, std::ios::out);
 }
 
+wlep::WLepWriter::WLepWriter(std::string &filename, IStream *thumbnail_data) {
+	if (filename.empty()) {
+		wleputils::ExceptionUtil::throwAndPrintException<std::invalid_argument>("Filename cannot be empty!");
+	}
+
+	if (!wleputils::StringUtil::endsWith(filename, wlepconstants::file_extension)) {
+		filename.append(wlepconstants::file_extension);
+	}
+
+	this->filename_ = filename;
+	this->header = wlep::WLepHeader(thumbnail_data);
+
+	wleputils::FileUtil::openFileStream(this->file_, this->filename_, std::ios::out);
+}
+
 wlep::WLepWriter::~WLepWriter() {
 	wleputils::FileUtil::closeFileStream(this->file_);
 }

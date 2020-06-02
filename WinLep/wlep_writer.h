@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include "wlep_header.h"
+#include <Windows.h>
 
 namespace wlep {
 	class WLepWriter {
@@ -14,6 +15,8 @@ namespace wlep {
 
 		WLepWriter(std::string &filename, wlep::WLepHeader &header);
 		WLepWriter(std::string &filename, const std::string &thumbnail_filename);
+		WLepWriter(std::string &filename, IStream *thumbnail_data);
+
 
 		~WLepWriter();
 

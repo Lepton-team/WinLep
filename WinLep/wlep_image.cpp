@@ -14,6 +14,9 @@ wlep::WLepImage::~WLepImage() {
 	if (thumbnail_stream) {
 		thumbnail_stream->Release();
 	}
+	if (mem_) {
+		::GlobalFree(mem_);
+	}
 
 	delete thumbnail;
 	delete image;
@@ -78,8 +81,8 @@ IStream *wlep::WLepImage::getThumbnailAsStream() throw(std::exception) {
 		return nullptr;
 	}
 
-	HGLOBAL mem = ::GlobalAlloc(GMEM_MOVEABLE, sizeof(this->thumbnail));
-	if (!mem) {
+	mem_ = ::GlobalAlloc(GMEM_MOVEABLE, sizeof(this->thumbnail));
+	if (!mem_) {
 		wleputils::ExceptionUtil::throwAndPrintException
 			<std::exception>("Error while allocationg memory!");
 	}
@@ -88,7 +91,7 @@ IStream *wlep::WLepImage::getThumbnailAsStream() throw(std::exception) {
 		this->thumbnail_stream->Release();
 	}
 	this->thumbnail_stream = nullptr;
-	HRESULT hr = ::CreateStreamOnHGlobal(mem, true, &this->thumbnail_stream);
+	HRESULT hr = ::CreateStreamOnHGlobal(mem_, true, &this->thumbnail_stream);
 
 	if (hr != S_OK) {
 		wleputils::ExceptionUtil::throwAndPrintException

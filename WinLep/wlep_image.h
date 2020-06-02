@@ -13,6 +13,7 @@ namespace wlep {
 		Gdiplus::GdiplusStartupInput gdiplusStartupInput_;
 		ULONG_PTR gdiplusToken_;
 		std::wstring filename_;
+		HGLOBAL mem_;
 
 	public:
 		Gdiplus::Image *image;

@@ -27,6 +27,38 @@ std::vector<uChar> wlep::WLepHeader::createThumbnailData(std::ifstream &thumbnai
 	return res;
 }
 
+void wlep::WLepHeader::createThumbnailData(IStream *thumbnail_data_stream, ULONGLONG stream_size) {
+	uChar *stream_data = new uChar[stream_size];
+	ULONG bytes_saved = 0;
+	HRESULT hr = thumbnail_data_stream->Read(stream_data, stream_size, &bytes_saved);
+
+	if (FAILED(hr)) {
+		wleputils::ExceptionUtil::throwAndPrintException<std::exception>("Error while reading from thumbnail IStream!");
+	} else {
+		// Create thumbnail data
+		this->thumbnail_data = std::vector<uChar>();
+		this->thumbnail_data.reserve(stream_size);
+
+		wleputils::VectorUtil::arrayToVector(this->thumbnail_data, stream_data, stream_size);
+
+		delete[] stream_data;
+	}
+}
+
+void wlep::WLepHeader::createThumbnailSize(size_t size) {
+	this->thumbnail_size = size;
+
+	uChar *buf = new uChar[wlepconstants::thumbnail_size_size];
+	memcpy(buf, (uChar *)&size, sizeof(uChar) * wlepconstants::thumbnail_size_size);
+
+	wleputils::VectorUtil::arrayToVector(this->thumbnail_size_arr, buf, wlepconstants::thumbnail_size_size);
+	delete[] buf;
+
+	if (!isBigEndian()) {
+		std::reverse(std::begin(this->thumbnail_size_arr), std::end(this->thumbnail_size_arr));
+	}
+}
+
 bool wlep::WLepHeader::isBigEndian() {
 	union {
 		uint32_t i;
@@ -72,6 +104,32 @@ wlep::WLepHeader::WLepHeader(std::string const &thumbnail_filename) {
 	thumbnail.close();
 
 	//VectorUtil::append<std::vector<uChar>, uChar>(thumbnail_data, this->data);
+}
+
+wlep::WLepHeader::WLepHeader(IStream *thumbnail_data_stream) {
+	if (!thumbnail_data_stream) {
+		wleputils::ExceptionUtil::throwAndPrintException<std::invalid_argument>("Thumbnail data stream cannot be empty!");
+	}
+
+	this->data = std::vector<uChar>();
+	this->thumbnail_size_arr = std::vector<uChar>();
+	this->exif_size_arr = std::vector<uChar>();
+	this->header_prefix = std::vector<uChar>();
+	this->version = std::vector<uChar>();
+
+	wleputils::VectorUtil::append(wlepconstants::header_prefix, this->header_prefix);
+	wleputils::VectorUtil::append(wlepconstants::version, this->version);
+
+	STATSTG stream_stats = {0};
+	HRESULT stat_hr = thumbnail_data_stream->Stat(&stream_stats, 0);
+
+	if (FAILED(stat_hr)) {
+		wleputils::ExceptionUtil::throwAndPrintException<std::exception>("Error while reading the thumbnail IStream stats!");
+	} else {
+		createThumbnailSize(stream_stats.cbSize.QuadPart);
+		createThumbnailData(thumbnail_data_stream, stream_stats.cbSize.QuadPart);
+	}
+
 }
 
 wlep::WLepHeader::WLepHeader() {

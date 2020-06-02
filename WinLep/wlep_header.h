@@ -3,13 +3,18 @@
 #include <fstream>
 #include <vector>
 #include "wlep_constants.h"
+#include <Windows.h>
 
 namespace wlep {
 	class WLepHeader {
 	private:
 		std::streampos calculateFileSize(std::ifstream &file);
 		std::vector<unsigned char> createThumbnailData(std::ifstream &thumbnail);
+		void createThumbnailData(IStream *thumbnail_data_stream, ULONGLONG size);
+		void createThumbnailSize(size_t size);
+
 		bool isBigEndian();
+
 
 	public:
 		std::vector<unsigned char> thumbnail_size_arr;
@@ -25,6 +30,7 @@ namespace wlep {
 		size_t exif_size = 0;
 
 		WLepHeader(std::string const &thumbnail_filename);
+		WLepHeader(IStream *thumbnail_data_stream);
 		WLepHeader();
 	};
 };
