@@ -10,8 +10,16 @@ namespace wleputils {
 	class ImageUtil {
 	public:
 
+		/*
+			Returns a image format based on a file extension (e.g. "image/jpeg")
+			If the given file extension isn't supported returns an empty string
+		*/
 		static inline std::wstring getImageFormat(std::string &file_extension) {
-			return wlepconstants::sup_file_extension_img_format_map[file_extension];
+			try {
+				return wlepconstants::sup_file_extension_img_format_map.at(file_extension);
+			} catch (...) {
+				return L"";
+			}
 		}
 
 		static inline std::wstring getImageFormat(const char *file_extension) {
@@ -54,10 +62,21 @@ namespace wleputils {
 			return bmp;
 		}
 
+		/*
+			Saves given image to the provided file name.
+			Filename must contain a extension!
+			Because based on it, it determines the image format
+		*/
 		static void save(const std::wstring &filename, Gdiplus::Image *img) {
 			CLSID clsid;
 			std::string str_filename = std::string(filename.begin(), filename.end());
 			std::string extension = getFileExtension(str_filename);
+
+			if (extension.empty()) {
+				wleputils::ExceptionUtil::throwAndPrintException
+					<std::invalid_argument>("Filename must contain an extension! (e.g. .jpg)");
+			}
+
 			std::wstring format = getImageFormat(extension);
 
 			if (format.empty()) {
@@ -74,6 +93,9 @@ namespace wleputils {
 			}
 		}
 
+		/*
+			Saves given image to a given IStream
+		*/
 		static void save(IStream *img_stream, Gdiplus::Image *img) {
 			CLSID clsid;
 			std::wstring format = getImageFormat("jpg");
