@@ -1,3 +1,5 @@
+#define DEBUG 
+
 #include <iostream>
 #include <vector>
 #include <sstream>
@@ -7,11 +9,11 @@
 #include "process_util.h"
 #include "wlep_reader.h"
 #include "wlep_writer.h"
+#include "wlep_image.h"
 
 std::string out_filename = "out.wlep";
 std::string test_lep_filename = "test.wlep";
 std::string test_jpg_filename = "test.jpg";
-
 
 /*
 	This code has been written according to Google's C++ style standards.
@@ -39,15 +41,17 @@ void testWriting() {
 	std::cout << writer.debug_str() << '\n';
 }
 
-int main() {
+int main(int argc, char **argv) {
+	wlep::WLepImage *image = new wlep::WLepImage(test_jpg_filename);
+ 	image->createThumbnail(128);
+
+	delete image;
+
 	testWriting();
-	testReading();
+  	testReading();
 
-	PROCESS_INFORMATION lepton_process = wlep::ProcessUtil::launchProcess("lepton.exe", "");
-
-	if (!wlep::ProcessUtil::isProcessActive(lepton_process)) {
-		wlep::ProcessUtil::stopProcess(lepton_process);
-	};
+	PROCESS_INFORMATION lepton_process = wlep::ProcessUtil::launchProcessAndWait("lepton.exe", "-skiproundtrip -");
+	wlep::ProcessUtil::stopProcess(lepton_process);
 
 	return 0;
 }

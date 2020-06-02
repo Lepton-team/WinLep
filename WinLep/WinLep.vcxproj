@@ -92,7 +92,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <AdditionalLibraryDirectories>C:\Users\Marek\Desktop\BP\repos\lepton\build\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>lepton.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lepton.lib;Gdiplus.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -128,16 +128,20 @@
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="wlep_header.cpp" />
+    <ClCompile Include="wlep_image.cpp" />
     <ClCompile Include="wlep_reader.cpp" />
     <ClCompile Include="wlep_writer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="exception_util.h" />
     <ClInclude Include="file_util.h" />
+    <ClInclude Include="image_util.h" />
     <ClInclude Include="process_util.h" />
     <ClInclude Include="string_util.h" />
     <ClInclude Include="vector_util.h" />
     <ClInclude Include="wlep_constants.h" />
     <ClInclude Include="wlep_header.h" />
+    <ClInclude Include="wlep_image.h" />
     <ClInclude Include="wlep_reader.h" />
     <ClInclude Include="wlep_writer.h" />
   </ItemGroup>

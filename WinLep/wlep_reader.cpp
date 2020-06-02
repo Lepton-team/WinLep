@@ -1,10 +1,10 @@
 #include "wlep_reader.h"
+#include "vector_util.h"
+#include "file_util.h"
+#include "exception_util.h"
+#include <iostream>
 
 void wlep::WLepReader::readHeader() {
-	if (!this->file_.is_open()) {
-		this->file_.open(this->filename_, std::ios::in | std::ios::binary);
-	}
-
 	// Header prefix
 	readFromFileToVector(this->header.header_prefix, wlepconstants::header_prefix_size);
 
@@ -16,13 +16,10 @@ void wlep::WLepReader::readHeader() {
 	this->header.thumbnail_size = wleputils::VectorUtil::hexVectorToInt(this->header.thumbnail_size_arr);
 }
 
-void wlep::WLepReader::closeFileStream() {
-	if (this->file_.is_open()) {
-		this->file_.close();
-	}
-}
-
 void wlep::WLepReader::readFromFileToVector(std::vector<uChar> &vec, size_t bytes) {
+	if (this->filename_.empty() || !this->file_.good()) {
+		wleputils::ExceptionUtil::throwAndPrintException<std::invalid_argument>("Error while reading from file!");
+	}
 	uChar *buf = new uChar[bytes];
 	this->file_.read(buf, bytes);
 	wleputils::VectorUtil::arrayToVector(vec, buf, bytes);
@@ -45,20 +42,13 @@ std::string wlep::WLepReader::debug_str() {
 	return res;
 }
 
-wlep::WLepReader::WLepReader(const std::string const &filename)
+wlep::WLepReader::WLepReader(std::string const &filename)
 	: filename_(filename) {
-	if (filename.empty()) {
-		throw std::invalid_argument("Filename cannot be empty!");
-	}
 
-	this->file_.open(filename, std::ios::in | std::ios::binary);
-
-	// Stop eating new lines in binary mode!!!
-	this->file_.unsetf(std::ios::skipws);
-
+	wleputils::FileUtil::openFileStream(this->file_, this->filename_, std::ios::in);
 	header = wlep::WLepHeader();
 }
 
 wlep::WLepReader::~WLepReader() {
-	closeFileStream();
+	wleputils::FileUtil::closeFileStream(this->file_);
 }

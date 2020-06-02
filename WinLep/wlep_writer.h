@@ -1,19 +1,13 @@
 #pragma once
 
 #include <fstream>
-#include "wlep_constants.h"
 #include "wlep_header.h"
-#include "file_util.h"
-#include "string_util.h"
 
 namespace wlep {
 	class WLepWriter {
 	private:
 		uFstream file_;
 		std::string filename_;
-
-		void openFileStream(std::string &filename);
-		void closeFileStream();
 
 	public:
 		wlep::WLepHeader header;

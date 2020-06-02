@@ -4,12 +4,11 @@
 #include <string>
 #include <sstream>
 #include "wlep_header.h"
-#include "vector_util.h"
 
 namespace wlep {
 	class WLepReader {
 	private:
-		const std::string const filename_;
+		std::string filename_;
 		uFstream file_;
 
 		const std::streampos prefix_start_pos_ = 0;
@@ -18,7 +17,6 @@ namespace wlep {
 		const std::streampos thumbnail_start_pos_ = thumbnail_size_start_pos_ + std::streampos(wlepconstants::thumbnail_size_size);
 
 		void readFromFileToVector(std::vector<unsigned char> &vec, size_t bytes);
-		void closeFileStream();
 
 	public:
 		wlep::WLepHeader header;

@@ -4,7 +4,7 @@
 #include <sstream>
 
 namespace wleputils {
-	static class VectorUtil {
+	class VectorUtil {
 	public:
 		/*
 			Appends to a vector

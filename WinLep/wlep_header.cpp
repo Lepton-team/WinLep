@@ -1,4 +1,6 @@
 #include "wlep_header.h"
+#include "vector_util.h"
+#include "exception_util.h"
 
 std::streampos wlep::WLepHeader::calculateFileSize(std::ifstream &file) {
 	file.seekg(0, file.beg);
@@ -36,7 +38,7 @@ bool wlep::WLepHeader::isBigEndian() {
 
 wlep::WLepHeader::WLepHeader(std::string const &thumbnail_filename) {
 	if (thumbnail_filename.empty()) {
-		throw std::invalid_argument("Thumbnail filename cannot be empty!");
+		wleputils::ExceptionUtil::throwAndPrintException<std::invalid_argument>("Thumbnail filename cannot be empty!");
 	}
 
 	this->data = std::vector<uChar>();

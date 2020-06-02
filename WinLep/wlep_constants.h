@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-
+#include <map>
 typedef std::basic_fstream<unsigned char, std::char_traits<unsigned char>> uFstream;
 typedef unsigned char uChar;
 
@@ -14,6 +14,12 @@ namespace wlepconstants {
 	static constexpr unsigned char header_prefix[header_prefix_size] = {0xC6, 0xD6};
 
 	static const std::string file_extension = ".wlep";
+	static const std::wstring jpg_format = L"image/jpeg";
+
+	static std::map<std::string, std::wstring> sup_file_extension_img_format_map = {
+		{"jpg", jpg_format}, 
+		{"jpeg", jpg_format}
+	};
 
 	// [0] -> Main version number
 	// [1] -> Sub-version number

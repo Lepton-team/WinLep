@@ -3,7 +3,6 @@
 #include <fstream>
 #include <vector>
 #include "wlep_constants.h"
-#include "vector_util.h"
 
 namespace wlep {
 	class WLepHeader {

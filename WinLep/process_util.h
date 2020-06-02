@@ -1,22 +1,32 @@
 #pragma once
-#ifdef _WIN32 // Only for windows 
+
+#define DEBUG 
 
 #include <Windows.h>
 #include <iostream>
-#include <stdio.h>
 #include <tchar.h>
 #include <string>
+#include "exception_util.h"
 
 namespace wlep {
 
 	class ProcessUtil {
 	public:
-		static PROCESS_INFORMATION launchProcess(const std::string &executable, const std::string &args) {
+		static PROCESS_INFORMATION launchProcessAndWait(const std::string &executable, const std::string &args) {
 			STARTUPINFO start_info;
 			PROCESS_INFORMATION proc_info; // Return value
 
 			ZeroMemory(&start_info, sizeof(start_info));
 			start_info.cb = sizeof(start_info);
+			
+			//TODO: 
+			// 1. Create pipe
+			// 2. Create process
+			// 3. Read lepton_data
+			//start_info.hStdInput = // JPG Input file handle
+			//start_info.hStdOutput = // Zapisovaci koniec rury 
+			//start_info.dwFlags |= STARTF_USESTDHANDLES;
+
 			ZeroMemory(&proc_info, sizeof(proc_info));
 
 			// Prepare CreateProcess args
@@ -31,66 +41,78 @@ namespace wlep {
 			const wchar_t *app_exe = exe.c_str();
 
 			// Start the child process.
+			// With CreateProcessW there's no need to set the arv[0] as the executable (itself)
 			if (!CreateProcessW(
 				app_exe,        // app path
 				args_concat,    // Command line (needs to include app path as first argument. args seperated by whitepace)
 				NULL,           // Process handle not inheritable
 				NULL,           // Thread handle not inheritable
-				FALSE,          // Set handle inheritance to FALSE
+				TRUE,           // Set handle inheritance to FALSE
 				0,              // No creation flags
 				NULL,           // Use parent's environment block
 				NULL,           // Use parent's starting directory
 				(LPSTARTUPINFOW)&start_info,  // Pointer to STARTUPINFO structure
 				&proc_info)     // Pointer to PROCESS_INFORMATION structure
 				) {
-				std::cout << "[ERROR] CreateProcess failed with error " << GetLastError() << "\n";
-				throw std::exception("Could not create child process");
+				wleputils::ExceptionUtil::throwAndPrintException
+					<std::exception>("Could not create child process", "CreateProcess failed with error", GetLastError());
 			} else {
-				std::cout << "[SUCCESS] Successfully launched a child process" << std::endl;
+#ifdef DEBUG
+				std::cout << "[OK] Successfully launched a child process" << std::endl;
+#endif // DEBUG
 			}
+
+			WaitForSingleObject(proc_info.hProcess, INFINITE);
 
 			return proc_info;
 		}
 
-		static bool isProcessActive(PROCESS_INFORMATION pi) {
+		static bool isProcessActive(PROCESS_INFORMATION &pi) {
 			// Check if handle is closed
 			if (pi.hProcess == NULL) {
-				std::cout << "[ERROR] Process handle is closed or invalid (" << GetLastError() << ")\n";
+				wleputils::ExceptionUtil::printErrorMsg("Process handle is closed or invalid", GetLastError());
 				return false;
 			}
 
-			// If handle open, check if process is active
-			DWORD lpExitCode = 0;
-			if (GetExitCodeProcess(pi.hProcess, &lpExitCode) == 0) {
-				std::cout << "[ERROR] Cannot return exit code (" << GetLastError() << ")\n";
-				throw std::exception("Cannot return exit code");
+			// If handle open is, check if process is active
+			DWORD exit_code = 0;
+			if (GetExitCodeProcess(pi.hProcess, &exit_code) == 0) {
+				wleputils::ExceptionUtil::throwAndPrintException
+					<std::exception>("Cannot return exit code", GetLastError());
 			} else {
-				return lpExitCode == STILL_ACTIVE;
+				return exit_code == STILL_ACTIVE;
 			}
 		}
 
 		static bool stopProcess(PROCESS_INFORMATION &pi) {
+			if (!isProcessActive(pi)) {
+#ifdef DEBUG
+				std::cout << "[OK] Process already inactive.\n";
+#endif // DEBUG
+				return true;
+			}
+			
 			// Check if handle is invalid or has allready been closed
 			if (pi.hProcess == NULL) {
-				std::cout << "[ERROR] Process handle invalid. It was probably already closed (" << GetLastError() << ")\n";
+				wleputils::ExceptionUtil::printErrorMsg("Process handle invalid. It was probably already closed", GetLastError());
 				return false;
 			}
 
 			// Terminate Process
 			if (!TerminateProcess(pi.hProcess, 1)) {
-				std::cout << "[ERROR] ExitProcess failed (" << GetLastError() << ")\n";
+				wleputils::ExceptionUtil::printErrorMsg("ExitProcess failed", GetLastError());
 				return false;
 			}
 
 			// Wait until child process exits.
 			if (WaitForSingleObject(pi.hProcess, INFINITE) == WAIT_FAILED) {
-				std::cout << "[ERROR] Wait for exit process failed (" << GetLastError() << ")\n";
+				wleputils::ExceptionUtil::printErrorMsg("Wait for exit process failed", GetLastError());
 				return false;
 			}
 
 			// Close process
 			if (!CloseHandle(pi.hProcess)) {
-				std::cout << "[ERROR] Cannot close process handle (" << GetLastError() << ")\n";
+				wleputils::ExceptionUtil::printErrorMsg("Cannot close process handle", GetLastError());
 				return false;
 			} else {
 				pi.hProcess = NULL;
@@ -98,16 +120,15 @@ namespace wlep {
 
 			// Close thread handles
 			if (!CloseHandle(pi.hThread)) {
-				std::cout << "[ERROR] Cannot close thread handle (" << GetLastError() << ")\n";
+				wleputils::ExceptionUtil::printErrorMsg("Cannot close thread handle", GetLastError());
 				return false;
 			} else {
 				pi.hProcess = NULL;
 			}
-
-			std::cout << "[SUCCESS] Successfully stopped a child process" << std::endl;
+#ifdef DEBUG
+			std::cout << "[OK] Successfully stopped a child process" << std::endl;
+#endif // DEBUG
 			return true;
 		}
 	};
 }
-#endif //win32
-
