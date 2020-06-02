@@ -18,8 +18,6 @@ namespace wlep {
 	public:
 		Gdiplus::Image *image;
 		Gdiplus::Image *thumbnail;
-		Gdiplus::Bitmap *thumbnail_bmp;
-		IStream *thumbnail_stream;
 
 		WLepImage(const std::string &filename);
 		~WLepImage();

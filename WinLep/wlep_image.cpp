@@ -10,10 +10,6 @@ wlep::WLepImage::WLepImage(const std::string &filename) {
 }
 
 wlep::WLepImage::~WLepImage() {
-
-	if (thumbnail_stream) {
-		thumbnail_stream->Release();
-	}
 	if (mem_) {
 		::GlobalFree(mem_);
 	}
@@ -59,21 +55,21 @@ Gdiplus::Bitmap *wlep::WLepImage::getThumbnailAsBitmap() {
 		return nullptr;
 	}
 	// Try to convert the thumbnail using dynamic cast
-	this->thumbnail_bmp = dynamic_cast<Gdiplus::Bitmap *>(this->thumbnail);
+	Gdiplus::Bitmap *thumbnail_bmp = dynamic_cast<Gdiplus::Bitmap *>(this->thumbnail);
 
 	// The thumbnail is an Image which is not a Bitmap. Convert.
-	if (!this->thumbnail_bmp) {
-		this->thumbnail_bmp = wleputils::ImageUtil::gdiplusImageToBitmap(this->thumbnail);
+	if (!thumbnail_bmp) {
+		thumbnail_bmp = wleputils::ImageUtil::gdiplusImageToBitmap(this->thumbnail);
 	}
 
 #ifdef DEBUG
 	if (thumbnail_bmp) {
-		std::cout << "Thumbnail bitmap dimensions: " << this->thumbnail_bmp->GetWidth() << "px x " << this->thumbnail_bmp->GetHeight() << "px\n";
+		std::cout << "Thumbnail bitmap dimensions: " << thumbnail_bmp->GetWidth() << "px x " << thumbnail_bmp->GetHeight() << "px\n";
 	}
 #endif // DEBUG
 
 	// The thumbnail is a Bitmap so just deal with it.
-	return this->thumbnail_bmp;
+	return thumbnail_bmp;
 }
 
 IStream *wlep::WLepImage::getThumbnailAsStream() throw(std::exception) {
@@ -87,11 +83,8 @@ IStream *wlep::WLepImage::getThumbnailAsStream() throw(std::exception) {
 			<std::exception>("Error while allocationg memory!");
 	}
 
-	if (this->thumbnail_stream) {
-		this->thumbnail_stream->Release();
-	}
-	this->thumbnail_stream = nullptr;
-	HRESULT hr = ::CreateStreamOnHGlobal(mem_, true, &this->thumbnail_stream);
+	IStream *thumbnail_stream;
+	HRESULT hr = ::CreateStreamOnHGlobal(mem_, true, &thumbnail_stream);
 
 	if (hr != S_OK) {
 		wleputils::ExceptionUtil::throwAndPrintException
@@ -99,10 +92,10 @@ IStream *wlep::WLepImage::getThumbnailAsStream() throw(std::exception) {
 	}
 
 	try {
-		wleputils::ImageUtil::save(this->thumbnail_stream, this->thumbnail);
+		wleputils::ImageUtil::save(thumbnail_stream, this->thumbnail);
 	} catch (...) {
 		wleputils::ExceptionUtil::printErrorMsg("Error while saving Image to IStream!");
 	}
 
-	return this->thumbnail_stream;
+	return thumbnail_stream;
 }
