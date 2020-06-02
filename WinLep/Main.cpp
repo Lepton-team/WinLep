@@ -42,19 +42,25 @@ void testWriting() {
 }
 
 int main(int argc, char **argv) {
-	
-	// Test
-	 {
-		wlep::WLepImage *image = new wlep::WLepImage(test_jpg_filename);
-		image->createThumbnail(128);
-		Gdiplus::Bitmap *bmp = image->getThumbnailAsBitmap();
 
-		delete bmp;
-		delete image;
+	// Test
+	{
+		wlep::WLepImage *image = new wlep::WLepImage(test_jpg_filename);
+		try {
+			image->createThumbnail(128);
+			Gdiplus::Bitmap *bmp = image->getThumbnailAsBitmap();
+			IStream *stream = image->getThumbnailAsStream();
+
+			delete bmp;
+			delete image;
+		} catch (...) {
+
+		}
+
 	}
 
 	testWriting();
-  	testReading();
+	testReading();
 
 	PROCESS_INFORMATION lepton_process = wleputils::ProcessUtil::launchProcessAndWait("lepton.exe", "-skiproundtrip -");
 	wleputils::ProcessUtil::stopProcess(lepton_process);

@@ -1,5 +1,6 @@
 #include "wlep_image.h"
 #include "file_util.h"
+#include "exception_util.h"
 
 wlep::WLepImage::WLepImage(const std::string &filename) {
 	GdiplusStartup(&this->gdiplusToken_, &this->gdiplusStartupInput_, NULL);
@@ -9,7 +10,14 @@ wlep::WLepImage::WLepImage(const std::string &filename) {
 }
 
 wlep::WLepImage::~WLepImage() {
+
+	if (thumbnail_stream) {
+		thumbnail_stream->Release();
+	}
+
+	delete thumbnail;
 	delete image;
+
 	Gdiplus::GdiplusShutdown(this->gdiplusToken_);
 }
 
@@ -61,7 +69,37 @@ Gdiplus::Bitmap *wlep::WLepImage::getThumbnailAsBitmap() {
 	}
 #endif // DEBUG
 
-
 	// The thumbnail is a Bitmap so just deal with it.
 	return this->thumbnail_bmp;
+}
+
+IStream *wlep::WLepImage::getThumbnailAsStream() throw(std::exception) {
+	if (this->thumbnail == nullptr) {
+		return nullptr;
+	}
+
+	HGLOBAL mem = ::GlobalAlloc(GMEM_MOVEABLE, sizeof(this->thumbnail));
+	if (!mem) {
+		wleputils::ExceptionUtil::throwAndPrintException
+			<std::exception>("Error while allocationg memory!");
+	}
+
+	if (this->thumbnail_stream) {
+		this->thumbnail_stream->Release();
+	}
+	this->thumbnail_stream = nullptr;
+	HRESULT hr = ::CreateStreamOnHGlobal(mem, true, &this->thumbnail_stream);
+
+	if (hr != S_OK) {
+		wleputils::ExceptionUtil::throwAndPrintException
+			<std::exception>("Error while creating IStream!");
+	}
+
+	try {
+		wleputils::ImageUtil::save(this->thumbnail_stream, this->thumbnail);
+	} catch (...) {
+		wleputils::ExceptionUtil::printErrorMsg("Error while saving Image to IStream!");
+	}
+
+	return this->thumbnail_stream;
 }
