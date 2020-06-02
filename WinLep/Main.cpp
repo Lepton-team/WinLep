@@ -42,10 +42,16 @@ void testWriting() {
 }
 
 int main(int argc, char **argv) {
-	wlep::WLepImage *image = new wlep::WLepImage(test_jpg_filename);
- 	image->createThumbnail(128);
+	
+	// Test
+	 {
+		wlep::WLepImage *image = new wlep::WLepImage(test_jpg_filename);
+		image->createThumbnail(128);
+		Gdiplus::Bitmap *bmp = image->getThumbnailAsBitmap();
 
-	delete image;
+		delete bmp;
+		delete image;
+	}
 
 	testWriting();
   	testReading();

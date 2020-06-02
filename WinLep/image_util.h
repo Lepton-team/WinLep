@@ -14,6 +14,11 @@ namespace wleputils {
 			return wlepconstants::sup_file_extension_img_format_map[file_extension];
 		}
 
+		static inline std::wstring getImageFormat(const char *file_extension) {
+			std::string str_extension = std::string(file_extension);
+			return getImageFormat(str_extension);
+		}
+
 		static inline std::string getFileExtension(std::string &filename) {
 			std::string::size_type idx;
 			idx = filename.rfind('.');
@@ -25,8 +30,32 @@ namespace wleputils {
 			return nullptr;
 		}
 
+		/*
+			Creates a Bitmap and paints the given image into it.
+		*/
+		static Gdiplus::Bitmap *gdiplusImageToBitmap(Gdiplus::Image *img, Gdiplus::Color background = Gdiplus::Color::Transparent) {
+			Gdiplus::Bitmap *bmp = nullptr;
+			try {
+				int width = img->GetWidth();
+				int height = img->GetHeight();
+				auto format = img->GetPixelFormat();
+
+				bmp = new Gdiplus::Bitmap(width, height, format);
+				auto gfx = std::unique_ptr<Gdiplus::Graphics>(Gdiplus::Graphics::FromImage(bmp));
+
+				gfx->Clear(background);
+				gfx->DrawImage(img, 0, 0, width, height);
+			} catch (...) {
+				// this might happen if img->GetPixelFormat() is something exotic
+				// ... not sure
+				wleputils::ExceptionUtil::printErrorMsg("Error while creating Bitmap from Image!");
+				return nullptr;
+			}
+			return bmp;
+		}
+
 		static void save(const std::wstring &filename, Gdiplus::Image *img) {
-			CLSID jpgClsid;
+			CLSID clsid;
 			std::string str_filename = std::string(filename.begin(), filename.end());
 			std::string extension = getFileExtension(str_filename);
 			std::wstring format = getImageFormat(extension);
@@ -36,12 +65,24 @@ namespace wleputils {
 				wleputils::ExceptionUtil::throwAndPrintException<std::exception>(msg);
 			}
 
-			getEncoderClsid(format.c_str(), &jpgClsid);
+			getEncoderClsid(format.c_str(), &clsid);
 
 			// Save the image
-			if (img->Save(filename.c_str(), &jpgClsid) != Gdiplus::Status::Ok) {
+			if (img->Save(filename.c_str(), &clsid) != Gdiplus::Status::Ok) {
 				wleputils::ExceptionUtil::throwAndPrintException
-					<std::exception>("Error while saving image!");
+					<std::exception>("Error while saving image to file!");
+			}
+		}
+
+		static void save(IStream *img_stream, Gdiplus::Image *img) {
+			CLSID clsid;
+			std::wstring format = getImageFormat("jpg");
+			getEncoderClsid(format.c_str(), &clsid);
+
+			// Save the image
+			if (img->Save(img_stream, &clsid) != Gdiplus::Status::Ok) {
+				wleputils::ExceptionUtil::throwAndPrintException
+					<std::exception>("Error while saving image to stream!");
 			}
 		}
 

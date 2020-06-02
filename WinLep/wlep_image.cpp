@@ -24,7 +24,6 @@ Gdiplus::Image *wlep::WLepImage::createThumbnail(UINT width, UINT height) {
 	wleputils::ImageUtil::save(L"thumb.jpg", thumbnail);
 #endif // DEBUG
 
-	 
 	return this->thumbnail;
 }
 
@@ -39,7 +38,30 @@ Gdiplus::Image *wlep::WLepImage::createThumbnail(UINT side_length) {
 		calculated_height = (img_height * side_length) / img_width;
 	} else if (img_width < img_height) {
 		calculated_width = (img_width * side_length) / img_height;
-	} 
+	}
 
 	return this->createThumbnail(calculated_width, calculated_height);
+}
+
+Gdiplus::Bitmap *wlep::WLepImage::getThumbnailAsBitmap() {
+	if (this->thumbnail == nullptr) {
+		return nullptr;
+	}
+	// Try to convert the thumbnail using dynamic cast
+	this->thumbnail_bmp = dynamic_cast<Gdiplus::Bitmap *>(this->thumbnail);
+
+	// The thumbnail is an Image which is not a Bitmap. Convert.
+	if (!this->thumbnail_bmp) {
+		this->thumbnail_bmp = wleputils::ImageUtil::gdiplusImageToBitmap(this->thumbnail);
+	}
+
+#ifdef DEBUG
+	if (thumbnail_bmp) {
+		std::cout << "Thumbnail bitmap dimensions: " << this->thumbnail_bmp->GetWidth() << "px x " << this->thumbnail_bmp->GetHeight() << "px\n";
+	}
+#endif // DEBUG
+
+
+	// The thumbnail is a Bitmap so just deal with it.
+	return this->thumbnail_bmp;
 }

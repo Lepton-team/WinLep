@@ -17,6 +17,7 @@ namespace wlep {
 	public:
 		Gdiplus::Image *image;
 		Gdiplus::Image *thumbnail;
+		Gdiplus::Bitmap *thumbnail_bmp;
 
 		WLepImage(const std::string &filename);
 		~WLepImage();
@@ -25,6 +26,8 @@ namespace wlep {
 		Gdiplus::Image *createThumbnail(UINT width, UINT height);
 		// Preserves aspect ratio
 		Gdiplus::Image *createThumbnail(UINT side_length);
+
+		Gdiplus::Bitmap *getThumbnailAsBitmap();
 	};
 }
 
