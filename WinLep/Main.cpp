@@ -50,8 +50,8 @@ int main(int argc, char **argv) {
 	testWriting();
   	testReading();
 
-	PROCESS_INFORMATION lepton_process = wlep::ProcessUtil::launchProcessAndWait("lepton.exe", "-skiproundtrip -");
-	wlep::ProcessUtil::stopProcess(lepton_process);
+	PROCESS_INFORMATION lepton_process = wleputils::ProcessUtil::launchProcessAndWait("lepton.exe", "-skiproundtrip -");
+	wleputils::ProcessUtil::stopProcess(lepton_process);
 
 	return 0;
 }

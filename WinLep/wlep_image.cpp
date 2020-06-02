@@ -14,18 +14,18 @@ wlep::WLepImage::~WLepImage() {
 }
 
 Gdiplus::Image *wlep::WLepImage::createThumbnail(UINT width, UINT height) {
-	Gdiplus::Image *thumbnail = this->image->GetThumbnailImage(width, height);
+	this->thumbnail = this->image->GetThumbnailImage(width, height);
 	std::string filename = std::string(this->filename_.begin(), this->filename_.end());
 
 #ifdef DEBUG
 	CLSID jpgClsid;
 	std::cout << "Image dimensions: " << this->image->GetWidth() << "px x " << this->image->GetHeight() << "px \n";
 	std::cout << "Thumbnail dimensions: " << thumbnail->GetWidth() << "px x " << thumbnail->GetHeight() << "px \n";
-	wleputils::ImageUtil::getEncoderClsid(L"image/jpeg", &jpgClsid);
-	thumbnail->Save(L"thumb.jpg", &jpgClsid);
+	wleputils::ImageUtil::save(L"thumb.jpg", thumbnail);
 #endif // DEBUG
+
 	 
-	return thumbnail;
+	return this->thumbnail;
 }
 
 Gdiplus::Image *wlep::WLepImage::createThumbnail(UINT side_length) {

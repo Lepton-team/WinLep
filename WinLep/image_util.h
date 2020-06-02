@@ -3,26 +3,50 @@
 #include <objidl.h>
 #include <gdiplus.h>
 #include <string>
-#include <iostream>
 #include "wlep_constants.h"
+#include "exception_util.h"
 
 namespace wleputils {
 	class ImageUtil {
 	public:
-		
-		static inline std::wstring getImageType(std::string &file_extension) {
+
+		static inline std::wstring getImageFormat(std::string &file_extension) {
 			return wlepconstants::sup_file_extension_img_format_map[file_extension];
 		}
 
-		//TODO:
-		static inline bool save(const std::wstring &filename, Gdiplus::Image *img) {
-			//wleputils::ImageUtil::getEncoderClsid(L"image/jpeg", &jpgClsid);
-			//img->Save(filename.c_str(), &jpgClsid);
-			return false;
+		static inline std::string getFileExtension(std::string &filename) {
+			std::string::size_type idx;
+			idx = filename.rfind('.');
+
+			if (idx != std::string::npos) {
+				return filename.substr(idx + 1);
+			}
+
+			return nullptr;
+		}
+
+		static void save(const std::wstring &filename, Gdiplus::Image *img) {
+			CLSID jpgClsid;
+			std::string str_filename = std::string(filename.begin(), filename.end());
+			std::string extension = getFileExtension(str_filename);
+			std::wstring format = getImageFormat(extension);
+
+			if (format.empty()) {
+				std::string msg = extension + " is not a supported file extension!";
+				wleputils::ExceptionUtil::throwAndPrintException<std::exception>(msg);
+			}
+
+			getEncoderClsid(format.c_str(), &jpgClsid);
+
+			// Save the image
+			if (img->Save(filename.c_str(), &jpgClsid) != Gdiplus::Status::Ok) {
+				wleputils::ExceptionUtil::throwAndPrintException
+					<std::exception>("Error while saving image!");
+			}
 		}
 
 		/*
-			Sets the CLSID to the corresponding encoder for given format		
+			Sets the CLSID to the corresponding encoder for a given format
 		*/
 		static int getEncoderClsid(const WCHAR *format, CLSID *pClsid) {
 			UINT num = 0;          // number of image encoders

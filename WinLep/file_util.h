@@ -54,7 +54,7 @@ namespace wleputils {
 		/*
 			Returns a file extension of a given file
 		*/
-		static std::string getFileExtension(std::string &filename) {
+		static inline std::string getFileExtension(std::string &filename) {
 			std::string::size_type idx;
 			idx = filename.rfind('.');
 

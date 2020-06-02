@@ -13,13 +13,17 @@ namespace wlep {
 		Gdiplus::GdiplusStartupInput gdiplusStartupInput_;
 		ULONG_PTR gdiplusToken_;
 		std::wstring filename_;
-		Gdiplus::Image *createThumbnail(UINT width, UINT height);
 
 	public:
 		Gdiplus::Image *image;
+		Gdiplus::Image *thumbnail;
+
 		WLepImage(const std::string &filename);
 		~WLepImage();
 
+		// Doesn't preserve aspect ratio
+		Gdiplus::Image *createThumbnail(UINT width, UINT height);
+		// Preserves aspect ratio
 		Gdiplus::Image *createThumbnail(UINT side_length);
 	};
 }

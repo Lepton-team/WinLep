@@ -6,6 +6,9 @@ namespace wleputils {
 	class ExceptionUtil {
 
 	public:
+		/*
+			Methods that handle exceptions and also printing errors to stderr
+		*/
 		template<typename EX>
 		static void throwAndPrintException(std::string &msg) {
 			std::cerr << createErrorMsg(msg);
@@ -54,6 +57,9 @@ namespace wleputils {
 			throw EX(ex_msg.c_str());
 		}
 
+		/*
+			Inline methods for creating/printing error messages		
+		*/
 		static inline std::string createErrorMsg(const char *msg, unsigned long error_code) {
 			std::string str = std::string(msg);
 			return "[ERROR]" + str + " (" + std::to_string(error_code) + ")\n";

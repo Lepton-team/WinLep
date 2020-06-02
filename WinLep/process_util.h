@@ -8,7 +8,7 @@
 #include <string>
 #include "exception_util.h"
 
-namespace wlep {
+namespace wleputils {
 
 	class ProcessUtil {
 	public:
