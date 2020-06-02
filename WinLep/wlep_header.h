@@ -29,7 +29,6 @@ namespace wlep {
 		size_t thumbnail_size = 0;
 		size_t exif_size = 0;
 
-		WLepHeader(std::string const &thumbnail_filename);
 		WLepHeader(IStream *thumbnail_data_stream);
 		WLepHeader();
 	};

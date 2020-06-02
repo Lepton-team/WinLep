@@ -35,34 +35,51 @@ void testReading() {
 }
 
 void testWriting() {
-	wlep::WLepWriter writer(out_filename, test_jpg_filename);
-	writer.writeHeader();
+	wlep::WLepImage *image = new wlep::WLepImage(test_jpg_filename);
+	try {
+		image->createThumbnail(128);
+		Gdiplus::Bitmap *bmp = image->getThumbnailAsBitmap();
+		IStream *stream = image->getThumbnailAsStream();
 
-	std::cout << writer.debug_str() << '\n';
+#ifdef DEBUG
+		Gdiplus::Image *img_from_stream = Gdiplus::Image::FromStream(stream);
+		wleputils::ImageUtil::save(L"img_from_stream.jpg", img_from_stream);
+#endif // DEBUG
+
+		wlep::WLepWriter writer(out_filename, stream);
+ 		writer.writeHeader();
+		std::cout << writer.debug_str() << '\n';
+
+		delete bmp;
+		delete image;
+	} catch (...) {
+
+	}
+
 }
 
 int main(int argc, char **argv) {
 
-	// Test
-	{
-		wlep::WLepImage *image = new wlep::WLepImage(test_jpg_filename);
-		try {
-			image->createThumbnail(128);
-			Gdiplus::Bitmap *bmp = image->getThumbnailAsBitmap();
-			IStream *stream = image->getThumbnailAsStream();
-#ifdef DEBUG
-			Gdiplus::Image *img_from_stream = Gdiplus::Image::FromStream(stream);
-			wleputils::ImageUtil::save(L"img_from_stream.jpg", img_from_stream);
-#endif // DEBUG
-			wlep::WLepHeader header = wlep::WLepHeader(stream);
-
-			delete bmp;
-			delete image;
-		} catch (...) {
-
-		}
-
-	}
+//	// Test
+//	{
+//		wlep::WLepImage *image = new wlep::WLepImage(test_jpg_filename);
+//		try {
+//			image->createThumbnail(128);
+//			Gdiplus::Bitmap *bmp = image->getThumbnailAsBitmap();
+//			IStream *stream = image->getThumbnailAsStream();
+//#ifdef DEBUG
+//			Gdiplus::Image *img_from_stream = Gdiplus::Image::FromStream(stream);
+//			wleputils::ImageUtil::save(L"img_from_stream.jpg", img_from_stream);
+//#endif // DEBUG
+//			wlep::WLepHeader header = wlep::WLepHeader(stream);
+//
+//			delete bmp;
+//			delete image;
+//		} catch (...) {
+//
+//		}
+//
+//	}
 
 	testWriting();
 	testReading();

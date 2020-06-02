@@ -1,6 +1,7 @@
 #include "wlep_header.h"
 #include "vector_util.h"
 #include "exception_util.h"
+#include <stdio.h>
 
 std::streampos wlep::WLepHeader::calculateFileSize(std::ifstream &file) {
 	file.seekg(0, file.beg);
@@ -27,9 +28,18 @@ std::vector<uChar> wlep::WLepHeader::createThumbnailData(std::ifstream &thumbnai
 	return res;
 }
 
+HRESULT seekBackToBeginning(IStream *stream) {
+	LARGE_INTEGER li;
+	li.QuadPart = 0;
+	return stream->Seek(li, STREAM_SEEK_SET, NULL);
+}
+
 void wlep::WLepHeader::createThumbnailData(IStream *thumbnail_data_stream, ULONGLONG stream_size) {
 	uChar *stream_data = new uChar[stream_size];
 	ULONG bytes_saved = 0;
+	// Seek back to the beginning of the stream
+	seekBackToBeginning(thumbnail_data_stream);
+
 	HRESULT hr = thumbnail_data_stream->Read(stream_data, stream_size, &bytes_saved);
 
 	if (FAILED(hr)) {
@@ -41,6 +51,7 @@ void wlep::WLepHeader::createThumbnailData(IStream *thumbnail_data_stream, ULONG
 
 		wleputils::VectorUtil::arrayToVector(this->thumbnail_data, stream_data, stream_size);
 
+		seekBackToBeginning(thumbnail_data_stream);
 		delete[] stream_data;
 	}
 }
@@ -66,44 +77,6 @@ bool wlep::WLepHeader::isBigEndian() {
 	} onion = {0x01020304};
 
 	return onion.c[0] == 1;
-}
-
-wlep::WLepHeader::WLepHeader(std::string const &thumbnail_filename) {
-	if (thumbnail_filename.empty()) {
-		wleputils::ExceptionUtil::throwAndPrintException<std::invalid_argument>("Thumbnail filename cannot be empty!");
-	}
-
-	this->data = std::vector<uChar>();
-	this->thumbnail_size_arr = std::vector<uChar>();
-	this->exif_size_arr = std::vector<uChar>();
-	this->header_prefix = std::vector<uChar>();
-	this->version = std::vector<uChar>();
-
-	wleputils::VectorUtil::append(wlepconstants::header_prefix, this->header_prefix);
-	wleputils::VectorUtil::append(wlepconstants::version, this->version);
-
-	//TODO: Resize thumbnail
-	std::ifstream thumbnail;
-	thumbnail.open(thumbnail_filename, std::ios::binary | std::ios::in);
-
-	size_t f_size = calculateFileSize(thumbnail);
-
-	uChar *buf = new uChar[wlepconstants::thumbnail_size_size];
-	memcpy(buf, (uChar *)&f_size, sizeof(uChar) * wlepconstants::thumbnail_size_size);
-
-	wleputils::VectorUtil::arrayToVector(this->thumbnail_size_arr, buf, wlepconstants::thumbnail_size_size);
-
-	delete[] buf;
-
-	if (!isBigEndian()) {
-		std::reverse(std::begin(this->thumbnail_size_arr), std::end(this->thumbnail_size_arr));
-	}
-
-	this->thumbnail_data = createThumbnailData(thumbnail);
-
-	thumbnail.close();
-
-	//VectorUtil::append<std::vector<uChar>, uChar>(thumbnail_data, this->data);
 }
 
 wlep::WLepHeader::WLepHeader(IStream *thumbnail_data_stream) {

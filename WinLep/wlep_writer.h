@@ -14,9 +14,7 @@ namespace wlep {
 		wlep::WLepHeader header;
 
 		WLepWriter(std::string &filename, wlep::WLepHeader &header);
-		WLepWriter(std::string &filename, const std::string &thumbnail_filename);
 		WLepWriter(std::string &filename, IStream *thumbnail_data);
-
 
 		~WLepWriter();
 

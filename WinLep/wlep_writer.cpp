@@ -21,22 +21,6 @@ wlep::WLepWriter::WLepWriter(std::string &filename, wlep::WLepHeader &header)
 	wleputils::FileUtil::openFileStream(this->file_, this->filename_, std::ios::out);
 }
 
-wlep::WLepWriter::WLepWriter(std::string &filename, const std::string &thumbnail_filename) {
-	if (filename.empty() || thumbnail_filename.empty()) {
-		wleputils::ExceptionUtil::throwAndPrintException<std::invalid_argument>("Filename cannot be empty!");
-	}
-
-	this->header = wlep::WLepHeader(thumbnail_filename);
-
-	if (!wleputils::StringUtil::endsWith(filename, wlepconstants::file_extension)) {
-		filename.append(wlepconstants::file_extension);
-	}
-
-	this->filename_ = filename;
-
-	wleputils::FileUtil::openFileStream(this->file_, this->filename_, std::ios::out);
-}
-
 wlep::WLepWriter::WLepWriter(std::string &filename, IStream *thumbnail_data) {
 	if (filename.empty()) {
 		wleputils::ExceptionUtil::throwAndPrintException<std::invalid_argument>("Filename cannot be empty!");
@@ -66,13 +50,15 @@ size_t wlep::WLepWriter::writeHeader() {
 		wleputils::FileUtil::writeToFile<uChar>(this->file_, this->header.thumbnail_size_arr),
 		wleputils::FileUtil::writeToFile<uChar>(this->file_, this->header.thumbnail_data)
 	};
-
+	
 	for (int i = 0; i < items_to_write; i++) {
-		if (bytes_written_items[i] < 0) {
+		if (bytes_written_items[i] <= 0) {
 			wleputils::ExceptionUtil::throwAndPrintException<std::invalid_argument>("Error while writing the WinLep header");
 		}
 		bytes_written += bytes_written_items[i];
 	}
+
+	wleputils::FileUtil::closeFileStream(this->file_);
 
 	return bytes_written;
 }
