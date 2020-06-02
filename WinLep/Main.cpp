@@ -47,7 +47,7 @@ void testWriting() {
 #endif // DEBUG
 
 		wlep::WLepWriter writer(out_filename, stream);
- 		writer.writeHeader();
+		writer.writeHeader();
 		std::cout << writer.debug_str() << '\n';
 
 		delete bmp;
@@ -59,28 +59,6 @@ void testWriting() {
 }
 
 int main(int argc, char **argv) {
-
-//	// Test
-//	{
-//		wlep::WLepImage *image = new wlep::WLepImage(test_jpg_filename);
-//		try {
-//			image->createThumbnail(128);
-//			Gdiplus::Bitmap *bmp = image->getThumbnailAsBitmap();
-//			IStream *stream = image->getThumbnailAsStream();
-//#ifdef DEBUG
-//			Gdiplus::Image *img_from_stream = Gdiplus::Image::FromStream(stream);
-//			wleputils::ImageUtil::save(L"img_from_stream.jpg", img_from_stream);
-//#endif // DEBUG
-//			wlep::WLepHeader header = wlep::WLepHeader(stream);
-//
-//			delete bmp;
-//			delete image;
-//		} catch (...) {
-//
-//		}
-//
-//	}
-
 	testWriting();
 	testReading();
 
