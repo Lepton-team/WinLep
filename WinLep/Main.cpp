@@ -40,6 +40,7 @@ void testWriting() {
 		image->createThumbnail(128);
 		Gdiplus::Bitmap *bmp = image->getThumbnailAsBitmap();
 		IStream *stream = image->getThumbnailAsStream();
+		uChar *raw_data = image->getThumbnailAsRawData();
 
 #ifdef DEBUG
 		Gdiplus::Image *img_from_stream = Gdiplus::Image::FromStream(stream);
@@ -51,6 +52,7 @@ void testWriting() {
 		std::cout << writer.debug_str() << '\n';
 
 		delete bmp;
+		delete raw_data;
 		delete image;
 	} catch (...) {
 

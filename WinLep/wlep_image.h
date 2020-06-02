@@ -29,6 +29,7 @@ namespace wlep {
 
 		Gdiplus::Bitmap *getThumbnailAsBitmap();
 		IStream *getThumbnailAsStream();
+		BYTE *getThumbnailAsRawData();
 	};
 }
 

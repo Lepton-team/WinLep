@@ -37,8 +37,11 @@ HRESULT seekBackToBeginning(IStream *stream) {
 void wlep::WLepHeader::createThumbnailData(IStream *thumbnail_data_stream, ULONGLONG stream_size) {
 	uChar *stream_data = new uChar[stream_size];
 	ULONG bytes_saved = 0;
+
 	// Seek back to the beginning of the stream
-	seekBackToBeginning(thumbnail_data_stream);
+	if (FAILED(seekBackToBeginning(thumbnail_data_stream))) {
+		wleputils::ExceptionUtil::throwAndPrintException<std::exception>("Error while seeking to the beginning of IStream");
+	}
 
 	HRESULT hr = thumbnail_data_stream->Read(stream_data, stream_size, &bytes_saved);
 
@@ -51,7 +54,6 @@ void wlep::WLepHeader::createThumbnailData(IStream *thumbnail_data_stream, ULONG
 
 		wleputils::VectorUtil::arrayToVector(this->thumbnail_data, stream_data, stream_size);
 
-		seekBackToBeginning(thumbnail_data_stream);
 		delete[] stream_data;
 	}
 }

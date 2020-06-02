@@ -99,3 +99,51 @@ IStream *wlep::WLepImage::getThumbnailAsStream() throw(std::exception) {
 
 	return thumbnail_stream;
 }
+
+HRESULT seekToBeginning(IStream *stream) {
+	LARGE_INTEGER li;
+	li.QuadPart = 0;
+	return stream->Seek(li, STREAM_SEEK_SET, NULL);
+}
+
+BYTE *wlep::WLepImage::getThumbnailAsRawData() {
+	IStream *stream = nullptr;
+
+	try {
+		stream = getThumbnailAsStream();
+	} catch (...) {
+		wleputils::ExceptionUtil::printErrorMsg("Error while getting thumbnail as Stream!");
+		return nullptr;
+	}
+
+	STATSTG stats = {0};
+	HRESULT stat_hr = stream->Stat(&stats, 0);
+	uChar *stream_data = new uChar[stats.cbSize.QuadPart];
+	ULONG bytes_saved = 0;
+
+	// Seek back to the beginning of the stream
+	if (FAILED(seekToBeginning(stream))) {
+		wleputils::ExceptionUtil::throwAndPrintException<std::exception>("Error when seeking to beginning of the IStream!");
+	}
+	HRESULT hr = stream->Read(stream_data, stats.cbSize.QuadPart, &bytes_saved);
+
+#ifdef DEBUG
+	std::cout << "Read " << bytes_saved << " B of thumbnail's raw data\n";
+#endif // DEBUG
+
+	if (bytes_saved == 0) {
+		wleputils::ExceptionUtil::printErrorMsg("Read 0 bytes from IStream!");
+	}
+
+	if (FAILED(hr)) {
+		wleputils::ExceptionUtil::throwAndPrintException<std::exception>("Error while reading from thumbnail IStream!");
+	} else {
+		return stream_data;
+	}
+
+
+
+	delete[] stream_data;
+
+	return nullptr;
+}
