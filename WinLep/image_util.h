@@ -5,6 +5,7 @@
 #include <string>
 #include "wlep_constants.h"
 #include "exception_util.h"
+#include "string_util.h"
 
 namespace wleputils {
 	class ImageUtil {
@@ -14,8 +15,9 @@ namespace wleputils {
 			Returns a image format based on a file extension (e.g. "image/jpeg")
 			If the given file extension isn't supported returns an empty string
 		*/
-		static inline std::wstring getImageFormat(std::string &file_extension) {
+		static inline std::wstring getImageFormat(std::string file_extension) {
 			try {
+				wleputils::StringUtil::toLowerCase(file_extension);
 				return wlepconstants::sup_file_extension_img_format_map.at(file_extension);
 			} catch (...) {
 				return L"";
