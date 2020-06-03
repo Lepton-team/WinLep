@@ -4,6 +4,8 @@
 #include "exception_util.h"
 #include <iostream>
 
+//#define DEBUG
+
 void wlep::WLepReader::readHeader() {
 	// Header prefix
 	readFromFileToVector(this->header.header_prefix, wlepconstants::header_prefix_size);
@@ -14,6 +16,9 @@ void wlep::WLepReader::readHeader() {
 	// Thumbnail size
 	readFromFileToVector(this->header.thumbnail_size_arr, wlepconstants::thumbnail_size_size);
 	this->header.thumbnail_size = wleputils::VectorUtil::hexVectorToInt(this->header.thumbnail_size_arr);
+
+	// Thumbnail data
+	readFromFileToVector(this->header.thumbnail_data, this->header.thumbnail_size);
 }
 
 void wlep::WLepReader::readFromFileToVector(std::vector<uChar> &vec, size_t bytes) {
@@ -37,7 +42,14 @@ std::string wlep::WLepReader::debug_str() {
 		.append("\nRead thumbnail size: ")
 		.append(std::to_string(this->header.thumbnail_size))
 		.append(" B\t-> 0x")
-		.append(wleputils::VectorUtil::hexVectorToHexString(this->header.thumbnail_size_arr));
+		.append(wleputils::VectorUtil::hexVectorToHexString(this->header.thumbnail_size_arr))
+#ifdef DEBUG
+		.append("\nRead thumbnail data: ")
+		.append(wleputils::VectorUtil::hexVectorToHexString(this->header.thumbnail_data));
+#else 
+		;
+#endif // DEBUG
+
 
 	return res;
 }

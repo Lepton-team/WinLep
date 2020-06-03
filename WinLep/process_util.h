@@ -47,7 +47,7 @@ namespace wleputils {
 				args_concat,    // Command line (needs to include app path as first argument. args seperated by whitepace)
 				NULL,           // Process handle not inheritable
 				NULL,           // Thread handle not inheritable
-				TRUE,           // Set handle inheritance to FALSE
+				TRUE,           // Set handle inheritance to TRUE
 				0,              // No creation flags
 				NULL,           // Use parent's environment block
 				NULL,           // Use parent's starting directory
