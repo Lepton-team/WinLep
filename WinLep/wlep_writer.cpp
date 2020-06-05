@@ -129,23 +129,18 @@ size_t wlep::WLepWriter::writeWinLepFile() {
 	size_t header_written = 0;
 	size_t lepton_data_written = 0;
 
-	try {
 #ifdef TIME
-		clock_t start = std::clock();
+	clock_t start = std::clock();
 #endif // TIME
 
-		header_written = writeHeader();
+	header_written = writeHeader();
 
 #ifdef TIME
-		clock_t end = std::clock();
-		std::cerr << "[TIME] Writing header took " << diffClock(end, start) << "ms\n";
+	clock_t end = std::clock();
+	std::cerr << "[TIME] Writing header took " << diffClock(end, start) << "ms\n";
 #endif // TIME
 
-		lepton_data_written = writeLeptonData();
-	} catch (...) {
-		wleputils::ExceptionUtil::printErrorMsg("Error while writing WinLep file!");
-		return -1;
-	}
+	lepton_data_written = writeLeptonData();
 
 	wleputils::FileUtil::closeFileStream(this->file_);
 
