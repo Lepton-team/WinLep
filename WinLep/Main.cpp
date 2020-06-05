@@ -7,7 +7,6 @@
 #include <string>
 #include <Windows.h>
 
-#include "lepton_convertor.h"
 #include "wlep_reader.h"
 #include "wlep_writer.h"
 #include "wlep_image.h"
@@ -36,25 +35,10 @@ void testReading() {
 }
 
 void testWriting() {
-	wlep::WLepImage *image = new wlep::WLepImage(test_jpg_filename);
 	try {
-		image->createThumbnail(128);
-		Gdiplus::Bitmap *bmp = image->getThumbnailAsBitmap();
-		IStream *stream = image->getThumbnailAsStream();
-		uChar *raw_data = image->getThumbnailAsRawData();
-
-#ifdef SAVE_THUMBNAIL
-		Gdiplus::Image *img_from_stream = Gdiplus::Image::FromStream(stream);
-		wleputils::ImageUtil::save(L"img_from_stream.jpg", img_from_stream);
-#endif // SAVE_THUMBNAIL
-
-		wlep::WLepWriter writer(out_filename, stream);
-		writer.writeHeader();
+		wlep::WLepWriter writer(out_filename, test_jpg_filename);
+		writer.writeWinLepFile();
 		std::cout << writer.debug_str() << '\n';
-
-		delete bmp;
-		delete raw_data;
-		delete image;
 	} catch (...) {
 
 	}
@@ -64,9 +48,6 @@ void testWriting() {
 int main(int argc, char **argv) {
 	testWriting();
 	testReading();
-
-	wlep::LeptonConvertor lepton;
-	std::vector<uChar> lepton_data = lepton.convertJpgToLepton(test_jpg_filename);
 
 	std::cout << "Done.\n";
 		 

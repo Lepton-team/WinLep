@@ -1,7 +1,7 @@
-#include "lepton_convertor.h"
+#include "lepton_converter.h"
 #include "process_util.h"
 
-std::vector<BYTE> wlep::LeptonConvertor::convertJpgToLepton(const std::string &jpg_filename) {
+std::vector<BYTE> wlep::LeptonConverter::convertJpgToLepton(const std::string &jpg_filename) {
 	const std::string lepton_exe = "lepton.exe";
 	const std::string lepton_args = "-skiproundtrip -";
 	std::vector<BYTE> lepton_data = std::vector<BYTE>();
