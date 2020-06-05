@@ -1,4 +1,5 @@
 #define DEBUG 
+#define SAVE_THUMBNAIL
 
 #include <iostream>
 #include <vector>
@@ -6,7 +7,7 @@
 #include <string>
 #include <Windows.h>
 
-#include "process_util.h"
+#include "lepton_convertor.h"
 #include "wlep_reader.h"
 #include "wlep_writer.h"
 #include "wlep_image.h"
@@ -42,10 +43,10 @@ void testWriting() {
 		IStream *stream = image->getThumbnailAsStream();
 		uChar *raw_data = image->getThumbnailAsRawData();
 
-#ifdef DEBUG
+#ifdef SAVE_THUMBNAIL
 		Gdiplus::Image *img_from_stream = Gdiplus::Image::FromStream(stream);
 		wleputils::ImageUtil::save(L"img_from_stream.jpg", img_from_stream);
-#endif // DEBUG
+#endif // SAVE_THUMBNAIL
 
 		wlep::WLepWriter writer(out_filename, stream);
 		writer.writeHeader();
@@ -64,8 +65,10 @@ int main(int argc, char **argv) {
 	testWriting();
 	testReading();
 
-	PROCESS_INFORMATION lepton_process = wleputils::ProcessUtil::launchProcessAndWait("lepton.exe", "-skiproundtrip -");
-	wleputils::ProcessUtil::stopProcess(lepton_process);
+	wlep::LeptonConvertor lepton;
+	std::vector<uChar> lepton_data = lepton.convertJpgToLepton(test_jpg_filename);
 
+	std::cout << "Done.\n";
+		 
 	return 0;
 }

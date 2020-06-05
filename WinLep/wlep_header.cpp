@@ -42,7 +42,7 @@ void wlep::WLepHeader::createThumbnailData(IStream *thumbnail_data_stream, ULONG
 	if (FAILED(seekBackToBeginning(thumbnail_data_stream))) {
 		wleputils::ExceptionUtil::throwAndPrintException<std::exception>("Error while seeking to the beginning of IStream");
 	}
-
+	// TODO: Read data in cycle ...
 	HRESULT hr = thumbnail_data_stream->Read(stream_data, stream_size, &bytes_saved);
 
 	if (FAILED(hr)) {

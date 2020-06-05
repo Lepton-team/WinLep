@@ -126,6 +126,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="lepton_convertor.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="wlep_header.cpp" />
     <ClCompile Include="wlep_image.cpp" />
@@ -136,6 +137,7 @@
     <ClInclude Include="exception_util.h" />
     <ClInclude Include="file_util.h" />
     <ClInclude Include="image_util.h" />
+    <ClInclude Include="lepton_convertor.h" />
     <ClInclude Include="process_util.h" />
     <ClInclude Include="string_util.h" />
     <ClInclude Include="vector_util.h" />

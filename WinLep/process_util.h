@@ -6,36 +6,69 @@
 #include <iostream>
 #include <tchar.h>
 #include <string>
+#include <vector>
 #include "exception_util.h"
+#include "string_util.h"
+#include "vector_util.h"
 
 namespace wleputils {
 
 	class ProcessUtil {
 	public:
-		static PROCESS_INFORMATION launchProcessAndWait(const std::string &executable, const std::string &args) {
-			STARTUPINFO start_info;
-			PROCESS_INFORMATION proc_info; // Return value
+		static void createPipes(HANDLE &child_in_read, HANDLE &child_in_write,
+								HANDLE &child_out_read, HANDLE &child_out_write, SECURITY_ATTRIBUTES &sec_attr) {
+			if (!CreatePipe(&child_out_read, &child_out_write, &sec_attr, 0)) {
+				wleputils::ExceptionUtil::throwAndPrintException
+					<std::exception>("Error while creating 'out' pipe");
+			}
 
-			ZeroMemory(&start_info, sizeof(start_info));
-			start_info.cb = sizeof(start_info);
-			
-			//TODO: 
-			// 1. Create pipe
-			// 2. Create process
-			// 3. Read lepton_data
-			//start_info.hStdInput = // JPG Input file handle
-			//start_info.hStdOutput = // Zapisovaci koniec rury 
-			//start_info.dwFlags |= STARTF_USESTDHANDLES;
+			// Ensure the read handle to the pipe for STDOUT is not inherited.
+			if (!SetHandleInformation(child_out_read, HANDLE_FLAG_INHERIT, 0)) {
+				wleputils::ExceptionUtil::throwAndPrintException
+					<std::exception>("The 'out' pipe is already inherited!");
+			}
+
+			if (!CreatePipe(&child_in_read, &child_in_write, &sec_attr, 0)) {
+				wleputils::ExceptionUtil::throwAndPrintException
+					<std::exception>("Error while creating 'in' pipe");
+			}
+
+			// Ensure the write handle to the pipe for STDIN is not inherited. 
+			if (!SetHandleInformation(child_in_write, HANDLE_FLAG_INHERIT, 0)) {
+				wleputils::ExceptionUtil::throwAndPrintException
+					<std::exception>("The 'in' pipe is already inherited!");
+			}
+		}
+
+		static void closeProcessAndThreadHandle(PROCESS_INFORMATION &proc_info) {
+			if (!CloseHandle(proc_info.hProcess)) {
+				wleputils::ExceptionUtil::throwAndPrintException
+					<std::exception>("Error while closing process handle!", GetLastError());
+			}
+
+			if (!CloseHandle(proc_info.hThread)) {
+				wleputils::ExceptionUtil::throwAndPrintException
+					<std::exception>("Error while closing thread handle!", GetLastError());
+			}
+		}
+
+		static bool launchProcess(const std::string &executable, const std::string &args,
+								  HANDLE &child_out_write, HANDLE &child_in_read) {
+			PROCESS_INFORMATION proc_info;
+			STARTUPINFOW start_info;
 
 			ZeroMemory(&proc_info, sizeof(proc_info));
 
+			ZeroMemory(&start_info, sizeof(start_info));
+			start_info.cb = sizeof(start_info);
+			start_info.hStdError = stderr; // GetStdHandle(STD_ERROR_HANDLE); // TODO: Suprress 
+			start_info.hStdOutput = child_out_write;
+			start_info.hStdInput = child_in_read; // TODO: input_file_handle ?
+			start_info.dwFlags |= STARTF_USESTDHANDLES;
+
 			// Prepare CreateProcess args
-			std::wstring exe(executable.length(), L' '); // Make room for characters
-			std::copy(executable.begin(), executable.end(), exe.begin()); // Copy string to wstring.
-
-			std::wstring w_args(args.length(), L' '); // Make room for characters
-			std::copy(args.begin(), args.end(), w_args.begin()); // Copy string to wstring.
-
+			std::wstring exe = wleputils::StringUtil::toWideString(executable);; // Make room for characters
+			std::wstring w_args = wleputils::StringUtil::toWideString(args);; // Make room for character
 			std::wstring input = exe + L" " + w_args;
 			wchar_t *args_concat = const_cast<wchar_t *>(input.c_str());
 			const wchar_t *app_exe = exe.c_str();
@@ -51,84 +84,77 @@ namespace wleputils {
 				0,              // No creation flags
 				NULL,           // Use parent's environment block
 				NULL,           // Use parent's starting directory
-				(LPSTARTUPINFOW)&start_info,  // Pointer to STARTUPINFO structure
+				&start_info,    // Pointer to STARTUPINFO structure
 				&proc_info)     // Pointer to PROCESS_INFORMATION structure
 				) {
-				wleputils::ExceptionUtil::throwAndPrintException
-					<std::exception>("Could not create child process", "CreateProcess failed with error", GetLastError());
+				return false;
 			} else {
 #ifdef DEBUG
 				std::cout << "[OK] Successfully launched a child process" << std::endl;
 #endif // DEBUG
-			}
-
-			WaitForSingleObject(proc_info.hProcess, INFINITE);
-
-			return proc_info;
-		}
-
-		static bool isProcessActive(PROCESS_INFORMATION &pi) {
-			// Check if handle is closed
-			if (pi.hProcess == NULL) {
-				wleputils::ExceptionUtil::printErrorMsg("Process handle is closed or invalid", GetLastError());
-				return false;
-			}
-
-			// If handle open is, check if process is active
-			DWORD exit_code = 0;
-			if (GetExitCodeProcess(pi.hProcess, &exit_code) == 0) {
-				wleputils::ExceptionUtil::throwAndPrintException
-					<std::exception>("Cannot return exit code", GetLastError());
-			} else {
-				return exit_code == STILL_ACTIVE;
-			}
-		}
-
-		static bool stopProcess(PROCESS_INFORMATION &pi) {
-			if (!isProcessActive(pi)) {
-#ifdef DEBUG
-				std::cout << "[OK] Process already inactive.\n";
-#endif // DEBUG
+				closeProcessAndThreadHandle(proc_info);
 				return true;
 			}
-			
-			// Check if handle is invalid or has allready been closed
-			if (pi.hProcess == NULL) {
-				wleputils::ExceptionUtil::printErrorMsg("Process handle invalid. It was probably already closed", GetLastError());
-				return false;
+		}
+
+		/*
+			Writes a given file to pipe		
+		*/
+		static void writeToPipe(HANDLE &input_file, HANDLE &child_write) {
+			constexpr unsigned int buff_size = 1024 * 4; // 4 KB - size of one page
+			DWORD read_bytes = 0;
+			DWORD written_bytes = 0;
+			BYTE *buff = new BYTE[buff_size];
+			bool success = false;
+
+			while (true) {
+				success = ReadFile(input_file, buff, buff_size, &read_bytes, NULL);
+				if (!success || read_bytes == 0) {
+					break;
+				}
+
+				success = WriteFile(child_write, buff, read_bytes, &written_bytes, NULL);
+				if (!success) {
+					break;
+				}
 			}
 
-			// Terminate Process
-			if (!TerminateProcess(pi.hProcess, 1)) {
-				wleputils::ExceptionUtil::printErrorMsg("ExitProcess failed", GetLastError());
-				return false;
+			delete[] buff;
+
+			// Close the pipe handle so the child process stops reading. 
+			if (!CloseHandle(child_write)) {
+				wleputils::ExceptionUtil::throwAndPrintException
+					<std::exception>("Error while closing child handle!", GetLastError());
 			}
 
-			// Wait until child process exits.
-			if (WaitForSingleObject(pi.hProcess, INFINITE) == WAIT_FAILED) {
-				wleputils::ExceptionUtil::printErrorMsg("Wait for exit process failed", GetLastError());
-				return false;
+			if (!CloseHandle(input_file)) {
+				wleputils::ExceptionUtil::throwAndPrintException
+					<std::exception>("Error while closing file handles!", GetLastError());
+			}
+		}
+
+		/*
+			Read output from the child process's pipe for STDOUT
+			and write to the parent process's pipe for STDOUT.
+			Stop when there is no more data.
+		*/
+		static void readFromPipeToBuffer(HANDLE child_read, std::vector<BYTE> &lepton_data) {
+			constexpr unsigned int buff_size = 1024 * 4; // 4 KB - size of one page
+			DWORD read_bytes = 0;
+			DWORD written_bytes = 0;
+			BYTE *buff = new BYTE[buff_size];
+			bool success = false;
+
+			while (true) {
+				success = ReadFile(child_read, buff, buff_size, &read_bytes, NULL);
+				if (!success || read_bytes == 0) {
+					break;
+				}
+				// Write the buffer to lepton_data
+				lepton_data.insert(lepton_data.end(), &buff[0], &buff[read_bytes]);
 			}
 
-			// Close process
-			if (!CloseHandle(pi.hProcess)) {
-				wleputils::ExceptionUtil::printErrorMsg("Cannot close process handle", GetLastError());
-				return false;
-			} else {
-				pi.hProcess = NULL;
-			}
-
-			// Close thread handles
-			if (!CloseHandle(pi.hThread)) {
-				wleputils::ExceptionUtil::printErrorMsg("Cannot close thread handle", GetLastError());
-				return false;
-			} else {
-				pi.hProcess = NULL;
-			}
-#ifdef DEBUG
-			std::cout << "[OK] Successfully stopped a child process" << std::endl;
-#endif // DEBUG
-			return true;
+			delete[] buff;
 		}
 	};
 }

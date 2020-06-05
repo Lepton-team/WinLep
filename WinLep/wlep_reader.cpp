@@ -2,9 +2,8 @@
 #include "vector_util.h"
 #include "file_util.h"
 #include "exception_util.h"
-#include <iostream>
 
-//#define DEBUG
+//#define PRINT_THUMBNAIL
 
 void wlep::WLepReader::readHeader() {
 	// Header prefix
@@ -34,7 +33,6 @@ void wlep::WLepReader::readFromFileToVector(std::vector<uChar> &vec, size_t byte
 
 std::string wlep::WLepReader::debug_str() {
 	std::string res = "";
-
 	res.append("\nRead header prefix: ")
 		.append(wleputils::VectorUtil::hexVectorToHexString(this->header.header_prefix))
 		.append("\nRead version: ")
@@ -43,13 +41,12 @@ std::string wlep::WLepReader::debug_str() {
 		.append(std::to_string(this->header.thumbnail_size))
 		.append(" B\t-> 0x")
 		.append(wleputils::VectorUtil::hexVectorToHexString(this->header.thumbnail_size_arr))
-#ifdef DEBUG
+#ifdef PRINT_THUMBNAIL
 		.append("\nRead thumbnail data: ")
 		.append(wleputils::VectorUtil::hexVectorToHexString(this->header.thumbnail_data));
 #else 
 		;
-#endif // DEBUG
-
+#endif // PRINT_THUMBNAIL
 
 	return res;
 }

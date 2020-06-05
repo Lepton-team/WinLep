@@ -5,7 +5,7 @@
 #include "exception_util.h"
 #include "vector_util.h"
 
-//#define DEBUG
+//#define PRINT_THUMBNAIL
 
 wlep::WLepWriter::WLepWriter(std::string &filename, wlep::WLepHeader &header)
 	: header(header) {
@@ -74,12 +74,12 @@ std::string wlep::WLepWriter::debug_str() {
 		.append(std::to_string(this->header.thumbnail_size))
 		.append(" B\t-> 0x")
 		.append(wleputils::VectorUtil::hexVectorToHexString(this->header.thumbnail_size_arr))
-#ifdef DEBUG
+#ifdef PRINT_THUMBNAIL
 		.append("\nWritten thumbnail data: ")
 		.append(wleputils::VectorUtil::hexVectorToHexString(this->header.thumbnail_data));
 #else
 		;
-#endif // DEBUG
+#endif // PRINT_THUMBNAIL
 
 
 	return res;
