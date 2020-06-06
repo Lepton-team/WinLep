@@ -1,6 +1,3 @@
-//#define DEBUG 
-#define SAVE_THUMBNAIL
-
 #include <iostream>
 #include <vector>
 #include <string>
@@ -10,13 +7,6 @@
 #include "wlep_image.h"
 #include "file_util.h"
 #include "directory.h"
-
-#ifdef DEBUG
-std::string out_filename = "out.wlep";
-std::string test_lep_filename = "test.wlep";
-std::string test_jpg_filename = "test.jpg";
-#endif // DEBUG
-
 
 /*
 	This code has been written according to Google's C++ style standards.
@@ -32,6 +22,12 @@ std::string test_jpg_filename = "test.jpg";
 */
 
 void printHelp();
+
+void printWinLepVersion() {
+	std::cerr << "WinLep v" << std::to_string(wlepconstants::version[0]) << '.'
+		<< std::to_string(wlepconstants::version[1]) << '.'
+		<< std::to_string(wlepconstants::version[2]) << '\n';
+}
 
 void convertAndWriteFiles(std::vector<std::string> &in_filenames, std::vector<std::string> &out_filenames) {
 	if (in_filenames.empty() || out_filenames.empty()) {
@@ -92,16 +88,12 @@ int main(int argc, char **argv) {
 	return -1;
 #endif // !_WIN32
 
-	std::cout << "WinLep v" << std::to_string(wlepconstants::version[0]) << '.'
-		<< std::to_string(wlepconstants::version[1]) << '.'
-		<< std::to_string(wlepconstants::version[2]) << '\n';
-
 	if (argc <= 1) {
 		printHelp();
 		return 0;
 	}
 
-	printHelp();
+	printWinLepVersion();
 
 	std::vector<std::string> in_filenames;
 	std::vector<std::string> out_filenames;
@@ -112,16 +104,16 @@ int main(int argc, char **argv) {
 			if (strcmp(argv[i], "-help") == 0) {
 				printHelp();
 				return 0;
-				// Convert all .jpg/.jpeg images in given directory
+				// Convert all .jpg/.jpeg images in the given directory
 			} else if (strcmp(argv[i], "-d") == 0) {
 				// No directory name
-				if (argc <= 2) {
+				if (argc < i + 1) {
 					wleputils::ExceptionUtil::printErrorMsg("Enter a directory name!");
 					printHelp();
 					return -1;
 				}
-
 				std::string output_dir = "";
+				// [output directory] is provided
 				if (argc > (i + 2)) {
 					output_dir = argv[i + 2];
 					if (output_dir[output_dir.length() - 1] != '\\') {
@@ -173,32 +165,36 @@ int main(int argc, char **argv) {
 }
 
 void printHelp() {
+	printWinLepVersion();
 	// General info
-	std::cerr << "Please make sure lepton.exe is present in the same directory as WinLep. \n";
-	std::cerr << "Usage: WinLep [input file] [output file] -[options]\n";
+	std::cerr << "Make sure lepton.exe is in your PATH\n\n";
+	std::cerr << "Usage: WinLep <input_file> [output_file] [options]\n";
 	std::cerr << "If no output file is provided, input filename will be used, with the extension " << wlepconstants::file_extension << '\n';
 	std::cerr << "If no output file extension is provided, or other than " << wlepconstants::file_extension
 		<< ", " << wlepconstants::file_extension << " will be used automatically.\n";
 	std::cerr << "\nOptions:\n\t-help:\tShow this menu\n";
 
 	// Options
-	std::cerr << "\t-d [directory] [output directory]: - Converts all .jpg/.jpeg files in given directory" <<
-		"\n\t\t\tto the output directory. Orginal filenames will be used, with the .wlep extension" <<
-		"\n\t\t\tIf no output directory is provided, the files will be outputted to [directory]." <<
-		"\n\t\t\tIf output directory is provided, it must exist.\n";
+	std::cerr << "\t-d <directory> [output_directory]: - Converts all .jpg/.jpeg files in given directory" <<
+		"\n\t\t\tto [output_directory]. Orginal filenames will be used, with the .wlep extension" <<
+		"\n\t\t\tIf no [output_directory] is provided, the files will be outputted to [directory]." <<
+		"\n\t\t\tIf [output_directory] is provided, it must exist.\n";
 
-	std::cerr << "\t-D [directory] [output directory]: - Converts all .jpg/.jpeg files in given directory" <<
-		"\n\t\t\tand all of its subdirectories to the output directory." <<
+	std::cerr << "\t-D <directory> [output_directory]: - Converts all .jpg/.jpeg files in given directory" <<
+		"\n\t\t\tand all of its subdirectories to [output_directory]." <<
 		"\n\t\t\tOrginal filenames will be used, with the .wlep extension." <<
-		"\n\t\t\tIf no output directory is provided, the files will be outputted to [directory]" <<
-		"\n\t\t\tIf output directory is provided, it must exist.\n";
+		"\n\t\t\tIf no [output_directory] is provided, the files will be outputted to [directory]" <<
+		"\n\t\t\tIf [output_directory] is provided, it must exist.\n";
 
 	// Examples
-	std::cerr << "\nExamples:\n\tWinLep test.jpg out" << wlepconstants::file_extension
-		<< " --> Converts test.jpg and saves it as out" << wlepconstants::file_extension << '\n';
-	std::cerr << "\tWinLep -d . --> Converts all the .jpg/.jpeg images in the current directory to " << wlepconstants::file_extension << '\n';
-	std::cerr << "\tWinLep -d . wlep_images --> Converts all the .jpg/.jpeg images in the current directory" <<
+	std::cerr << "\nExamples:\n\tWinLep test.jpg --> Converts test.jpg and saves it as test" << wlepconstants::file_extension
+		<< "\n\tWinLep test.jpg picture --> Converts test.jpg and saves it as picture" << wlepconstants::file_extension
+		<< "\n\tWinLep test.jpg out" << wlepconstants::file_extension
+		<< " --> Converts test.jpg and saves it as out" << wlepconstants::file_extension
+		<< "\n\tWinLep -d . --> Converts all the .jpg/.jpeg images in the current directory to " << wlepconstants::file_extension
+		<< "\n\tWinLep -d . wlep_images --> Converts all the .jpg/.jpeg images in the current directory" <<
 		"\n\t\t\t\tand saves them into wlep_images folder. \n";
+
 
 
 }
