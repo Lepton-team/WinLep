@@ -126,6 +126,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="directory.cpp" />
     <ClCompile Include="lepton_converter.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="wlep_header.cpp" />
@@ -134,6 +135,7 @@
     <ClCompile Include="wlep_writer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="directory.h" />
     <ClInclude Include="exception_util.h" />
     <ClInclude Include="file_util.h" />
     <ClInclude Include="image_util.h" />

@@ -51,9 +51,16 @@ std::vector<BYTE> wlep::LeptonConverter::convertJpgToLepton(const std::string &j
 				<std::exception>("Error while closing 'out' pipe's writing end!", GetLastError());
 		}
 	}
-
+	// Input file and child_in_write are closed here
 	wleputils::ProcessUtil::writeToPipe(input_file_handle, child_in_write);
 	wleputils::ProcessUtil::readFromPipeToBuffer(child_out_read, lepton_data);
+
+	// Close the out pipe's writing end
+	if (!CloseHandle(child_out_read)) {
+		wleputils::ExceptionUtil::throwAndPrintException
+			<std::exception>("Error while closing 'out' pipe's reading end!", GetLastError());
+	}
+
 
 	return lepton_data;
 }

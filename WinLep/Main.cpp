@@ -5,11 +5,11 @@
 #include <vector>
 #include <sstream>
 #include <string>
-#include <Windows.h>
 
 #include "wlep_reader.h"
 #include "wlep_writer.h"
 #include "wlep_image.h"
+#include "directory.h"
 
 std::string out_filename = "out.wlep";
 std::string test_lep_filename = "test.wlep";
@@ -42,14 +42,42 @@ void testWriting() {
 	} catch (...) {
 
 	}
-
 }
 
 int main(int argc, char **argv) {
+#ifndef _WIN32
+	std::cerr << "[ERROR] winLep is implemented only for Windows OS! (Hence the name ...)\n";
+	return -1;
+#endif // !_WIN32
+
 	testWriting();
 	testReading();
+	DWORD file_attr = GetFileAttributesW(L".");
+
+	if (file_attr == INVALID_FILE_ATTRIBUTES) {
+		wleputils::ExceptionUtil::throwAndPrintException
+			<std::exception>("Error while reading file attributes!");
+	}
+
+	if (file_attr == FILE_ATTRIBUTE_NORMAL) {
+		// TODO: Convert
+		std::cerr << "Normal\n";
+	}
+
+	if (file_attr == FILE_ATTRIBUTE_DIRECTORY) {
+		// TODO: Find all .jpg files and covert them to .wlep
+		std::cerr << "Directory\n";
+		wlep::Directory *dir = new wlep::Directory(".");
+		std::vector<std::string> files = dir->getAllFiles("jpg");
+
+		for (std::string file : files) {
+			std::cerr << file << "\n";
+		}
+
+		delete dir;
+	}
 
 	std::cout << "Done.\n";
-		 
+
 	return 0;
 }

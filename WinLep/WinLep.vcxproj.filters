@@ -33,6 +33,9 @@
     <ClCompile Include="lepton_converter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="directory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="wlep_header.h">
@@ -69,6 +72,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="lepton_converter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="directory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
