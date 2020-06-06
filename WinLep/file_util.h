@@ -18,7 +18,7 @@ namespace wleputils {
 			Closes a given file stream
 		*/
 		static inline void closeFileStream(uFstream &stream) {
-			if (!stream.is_open()) {
+			if (stream && !stream.is_open()) {
 				stream.close();
 			}
 		}
@@ -64,6 +64,17 @@ namespace wleputils {
 
 			return nullptr;
 		}
+
+		static inline std::string getFileNameWithoutExtension(std::string &filename) {
+			std::string::size_type idx = filename.find('.');
+
+			if (idx != std::string::npos) {
+				return filename.substr(0, idx);
+			}
+
+			return nullptr;
+		}
+
 		/*
 			Writes any vector to a file
 			Returns the bytes written

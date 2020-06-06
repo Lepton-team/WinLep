@@ -13,7 +13,7 @@ namespace wlep {
 
 	public:
 		Directory(const std::string &dir_path);
-		std::vector<std::string> getAllFiles(const std::string &file_extension);
+		std::vector<std::string> getAllFiles(const std::initializer_list<std::string>file_extension);
 		std::vector<std::string> getAllFiles();
 		std::vector<std::string> getAllSubDirectoryNames();
 

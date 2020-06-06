@@ -144,6 +144,8 @@ size_t wlep::WLepWriter::writeWinLepFile() {
 	std::cerr << "WinLep filesize: " << header_written + lepton_data_written << " B\n";
 #endif // DEBUG
 
+	wleputils::FileUtil::closeFileStream(this->file_);
+
 	return header_written + lepton_data_written;
 }
 

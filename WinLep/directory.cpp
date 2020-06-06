@@ -3,9 +3,11 @@
 #include "directory.h"
 #include "exception_util.h"
 #include "file_util.h"
+#include "string_util.h"
 #include <Windows.h>
 #include <strsafe.h>
 #include <algorithm>
+#include <initializer_list>
 
 wlep::Directory::Directory(const std::string &dir_path) {
 	if (dir_path.empty()) {
@@ -79,13 +81,19 @@ wlep::Directory::Directory(const std::string &dir_path) {
 	}
 }
 
-std::vector<std::string> wlep::Directory::getAllFiles(const std::string &file_extension) {
+std::vector<std::string> wlep::Directory::getAllFiles(std::initializer_list<std::string> file_extensions) {
 	std::vector<std::string> result(this->files_.size());
 
-	// Copy all the files that end with the given file extension
+	// Copy all the files that end with the given file extensions
 	auto it = std::copy_if(this->files_.begin(), this->files_.end(), result.begin(),
-						   [file_extension](std::string &file) {
-							   return wleputils::FileUtil::getFileExtension(file) == file_extension;
+						   [file_extensions](std::string &file) {
+							   bool is_matched = false;
+							   for (auto extension : file_extensions) {
+								   auto ex = wleputils::FileUtil::getFileExtension(file);
+								   wleputils::StringUtil::toLowerCase(ex);
+								   is_matched |= ex == extension;
+							   }
+							   return is_matched;
 						   });
 	// Shrink to new size
 	result.resize(std::distance(result.begin(), it));
