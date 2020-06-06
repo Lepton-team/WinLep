@@ -188,8 +188,8 @@ void printHelp() {
 		"\n\t\t\tIf output directory is provided, it must exist.\n";
 
 	std::cerr << "\t-D [directory] [output directory]: - Converts all .jpg/.jpeg files in given directory" <<
-		"\n\t\t\tand all of its subdirectories" <<
-		"\n\t\t\tto the output directory. Orginal filenames will be used, with the .wlep extension." <<
+		"\n\t\t\tand all of its subdirectories to the output directory." <<
+		"\n\t\t\tOrginal filenames will be used, with the .wlep extension." <<
 		"\n\t\t\tIf no output directory is provided, the files will be outputted to [directory]" <<
 		"\n\t\t\tIf output directory is provided, it must exist.\n";
 
