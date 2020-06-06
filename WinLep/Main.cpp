@@ -1,6 +1,11 @@
+#define TIME
 #include <iostream>
 #include <vector>
 #include <string>
+
+#ifdef TIME
+#include <ctime>
+#endif // TIME
 
 #include "wlep_reader.h"
 #include "wlep_writer.h"
@@ -29,6 +34,14 @@ void printWinLepVersion() {
 		<< std::to_string(wlepconstants::version[2]) << '\n';
 }
 
+#ifdef TIME
+double diffClock(clock_t clock1, clock_t clock2) {
+	double diffticks = clock1 - (double)clock2;
+	double diffms = (diffticks) / (CLOCKS_PER_SEC / 1000);
+	return diffms;
+}
+#endif // TIME
+
 void convertAndWriteFiles(std::vector<std::string> &in_filenames, std::vector<std::string> &out_filenames) {
 	if (in_filenames.empty() || out_filenames.empty()) {
 		wleputils::ExceptionUtil::printErrorMsg("Provided filenames are empty!");
@@ -43,7 +56,18 @@ void convertAndWriteFiles(std::vector<std::string> &in_filenames, std::vector<st
 
 	for (int i = 0; i < in_filenames.size(); i++) {
 		wlep::WLepWriter writer(out_filenames[i], in_filenames[i]);
-		writer.writeWinLepFile();
+#ifdef TIME
+		clock_t start = std::clock();
+#endif // TIME
+		size_t bytes_written = writer.writeWinLepFile();
+#ifdef TIME
+		clock_t end = std::clock();
+		std::cerr << "[TIME] Converting " << out_filenames[i]
+			<< " and converting it to lepton took " << diffClock(end, start) << "ms\n";
+#endif // TIME
+		std::cerr << "[INFO] Converted " << in_filenames[i] << " --> "
+			<< out_filenames[i] << " (" << bytes_written / 1000.0f << "kB)\n\n"; 
+
 	}
 }
 
@@ -72,14 +96,20 @@ std::string processInputFilename(char *filename) {
 }
 
 std::string processOutputFilename(char *filename) {
-	std::string result(filename);
-	wleputils::StringUtil::toLowerCase(result);
+	std::string str_filename(filename);
+	std::string extension = wleputils::FileUtil::getFileExtension(str_filename);
 
-	if (!wleputils::StringUtil::endsWith(result, wlepconstants::file_extension)) {
-		result += wlepconstants::file_extension;
+	if (extension.empty()) {
+		return str_filename + wlepconstants::file_extension;
 	}
 
-	return result;
+	wleputils::StringUtil::toLowerCase(extension);
+
+	if (extension != wlepconstants::file_extension) {
+		return str_filename + wlepconstants::file_extension;
+	}
+
+	return str_filename;
 }
 
 int main(int argc, char **argv) {
@@ -92,7 +122,6 @@ int main(int argc, char **argv) {
 		printHelp();
 		return 0;
 	}
-
 	printWinLepVersion();
 
 	std::vector<std::string> in_filenames;
@@ -146,9 +175,6 @@ int main(int argc, char **argv) {
 		} else {
 			in_filenames.push_back(processInputFilename(argv[i]));
 			if (argc > 2) {
-				if (argv[i + 1][0] == '-') {
-					continue;
-				}
 				out_filenames.push_back(processOutputFilename(argv[i + 1]));
 			} else {
 				out_filenames.push_back(wleputils::FileUtil::getFileNameWithoutExtension(in_filenames[0]) + wlepconstants::file_extension);

@@ -90,8 +90,9 @@ namespace wleputils {
 
 			// Save the image
 			if (img->Save(filename.c_str(), &clsid) != Gdiplus::Status::Ok) {
+				std::string msg = "Error while saving " + str_filename + " image to file!";
 				wleputils::ExceptionUtil::throwAndPrintException
-					<std::exception>("Error while saving image to file!");
+					<std::exception>(msg);
 			}
 		}
 

@@ -4,7 +4,6 @@
 
 #include "wlep_writer.h"
 #include "file_util.h"
-#include "string_util.h"
 #include "wlep_constants.h"
 #include "exception_util.h"
 #include "vector_util.h"
@@ -22,10 +21,6 @@ wlep::WLepWriter::WLepWriter(std::string &out_filename, wlep::WLepHeader &header
 		wleputils::ExceptionUtil::throwAndPrintException<std::invalid_argument>("Filename cannot be empty!");
 	}
 
-	if (!wleputils::StringUtil::endsWith(out_filename, wlepconstants::file_extension)) {
-		out_filename.append(wlepconstants::file_extension);
-	}
-
 	this->out_filename_ = out_filename;
 
 	wleputils::FileUtil::openFileStream(this->file_, this->out_filename_, std::ios::out);
@@ -34,10 +29,6 @@ wlep::WLepWriter::WLepWriter(std::string &out_filename, wlep::WLepHeader &header
 wlep::WLepWriter::WLepWriter(std::string &out_filename, IStream *thumbnail_data) {
 	if (out_filename.empty()) {
 		wleputils::ExceptionUtil::throwAndPrintException<std::invalid_argument>("Filename cannot be empty!");
-	}
-
-	if (!wleputils::StringUtil::endsWith(out_filename, wlepconstants::file_extension)) {
-		out_filename.append(wlepconstants::file_extension);
 	}
 
 	this->out_filename_ = out_filename;
@@ -49,10 +40,6 @@ wlep::WLepWriter::WLepWriter(std::string &out_filename, IStream *thumbnail_data)
 wlep::WLepWriter::WLepWriter(std::string &out_filename, std::string &jpg_filename) {
 	if (out_filename.empty() || jpg_filename.empty()) {
 		wleputils::ExceptionUtil::throwAndPrintException<std::invalid_argument>("Filename cannot be empty!");
-	}
-
-	if (!wleputils::StringUtil::endsWith(out_filename, wlepconstants::file_extension)) {
-		out_filename.append(wlepconstants::file_extension);
 	}
 
 	this->out_filename_ = out_filename;

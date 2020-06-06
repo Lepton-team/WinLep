@@ -62,7 +62,7 @@ namespace wleputils {
 				return filename.substr(idx + 1);
 			}
 
-			return nullptr;
+			return "";
 		}
 
 		static inline std::string getFileNameWithoutExtension(std::string &filename) {
@@ -72,7 +72,7 @@ namespace wleputils {
 				return filename.substr(0, idx);
 			}
 
-			return nullptr;
+			return "";
 		}
 
 		/*

@@ -1,3 +1,5 @@
+//#define SAVE_THUMBNAIL
+
 #include "wlep_image.h"
 #include "file_util.h"
 #include "exception_util.h"
@@ -24,12 +26,12 @@ Gdiplus::Image *wlep::WLepImage::createThumbnail(UINT width, UINT height) {
 	this->thumbnail = this->image->GetThumbnailImage(width, height);
 	std::string filename = std::string(this->filename_.begin(), this->filename_.end());
 
-#ifdef DEBUG
+#ifdef SAVE_THUMBNAIL
 	CLSID jpgClsid;
 	std::cout << "Image dimensions: " << this->image->GetWidth() << "px x " << this->image->GetHeight() << "px \n";
 	std::cout << "Thumbnail dimensions: " << thumbnail->GetWidth() << "px x " << thumbnail->GetHeight() << "px \n";
 	wleputils::ImageUtil::save(L"thumb.jpg", thumbnail);
-#endif // DEBUG
+#endif // SAVE_THUMBNAIL
 
 	return this->thumbnail;
 }
