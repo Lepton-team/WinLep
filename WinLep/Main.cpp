@@ -156,13 +156,7 @@ int main(int argc, char **argv) {
 		printHelp();
 		return 0;
 	}
-	printWinLepVersion();
-
-	//wlep::WLepReader reader("test.wlep");
-	//std::vector<uChar> lepton_data = reader.validateFileAndReadLeptonData();
-
-	//wlep::WLepWriter writer("test.wlep", "test\\hello.jpg", false);
-	//writer.writeJpgFile(lepton_data);
+   	printWinLepVersion();
 
 	std::vector<std::string> in_filenames;
 	std::vector<std::string> out_filenames;
@@ -225,30 +219,6 @@ int main(int argc, char **argv) {
 		output_dir = setupOutputDir(input.getSecondCmdOption("-D"));
 		setupFilenames(output_dir, input_dir, in_filenames, out_filenames, true);
 	}
-	//for (int i = 1; i < argc; i++) {
-	//	// Options
-	//	if (argv[i][0] == '-') {
-	//		if (strcmp(argv[i], "-help") == 0) {
-	//			printHelp();
-	//			return 0;
-	//			// Convert all .jpg/.jpeg images in the given directory
-	//		} else if (strcmp(argv[i], "-d") == 0) {
-	//			// No directory name
-	//			if (argc < i + 1) {
-	//				wleputils::ExceptionUtil::printErrorMsg("Enter a directory name!");
-	//				printHelp();
-	//				return -1;
-	//			}
-	//			// [output directory] is provided
-	//			if (argc > (i + 2)) {
-	//				output_dir = setupOutputDir(argv[i + 2]);
-	//				is_output_dir_provided = true;
-	//			}
-
-	//			setupFilenames(output_dir, argv[i + 1], in_filenames, out_filenames, false);
-	//			// Skip the next 1 or 2 args
-	//			i += is_output_dir_provided ? 2 : 1;
-	//			continue;
 
 	//			// Convert all .jpg/.jpeg images in given directory and all of its subdirectories
 	//		} else if (strcmp(argv[i], "-D") == 0) {
@@ -306,15 +276,15 @@ void printHelp() {
 	std::cerr << "If no output file is provided, input filename will be used, with the extension " << wlepconstants::file_extension << '\n';
 	std::cerr << "If no output file extension is provided, or other than " << wlepconstants::file_extension
 		<< ", " << wlepconstants::file_extension << " will be used automatically.\n";
-	std::cerr << "\nOptions:\n\t-help:\tShow this menu\n";
+	std::cerr << "\nOptions:\n\t-h -help - Show this menu\n";
 
 	// Options
-	std::cerr << "\t-d <directory> [output_directory]: - Converts all .jpg/.jpeg files in the given directory" <<
+	std::cerr << "\t-d <directory> [output_directory] - Converts all .jpg/.jpeg files in the given directory" <<
 		"\n\t\t\tto [output_directory]. Original filenames will be used, with the .wlep extension" <<
 		"\n\t\t\tIf no [output_directory] is provided, the files will be outputted to [directory]." <<
 		"\n\t\t\tIf [output_directory] is provided and it doesn't exist, it's created.\n";
 
-	std::cerr << "\t-D <directory> [output_directory]: - Converts all .jpg/.jpeg files in the given directory" <<
+	std::cerr << "\t-D <directory> [output_directory] - Converts all .jpg/.jpeg files in the given directory" <<
 		"\n\t\t\tand all of its subdirectories to [output_directory]." <<
 		"\n\t\t\tOriginal filenames will be used with the added .wlep extension." <<
 		"\n\t\t\tIf no [output_directory] is provided, the files will be outputted to [directory]" <<
@@ -322,16 +292,31 @@ void printHelp() {
 		"\n\t\t\talong with all other subdirectories." <<
 		"\n\t\t\tAll original subdirectory names are preserved and created in the same structure\n";
 
+	std::cerr << "\t-j - Converts desired file/directory from " << wlepconstants::file_extension
+		<< " to " << wlepconstants::jpg_extension << '\n';
+
+	std::cerr << "\t-J - Converts desired file/directory from " << wlepconstants::file_extension
+		<< " to " << wlepconstants::jpg_extension << " and REMOVES all original " << wlepconstants::file_extension << " files\n";
+
+	std::cerr << "\t-w - Converts desired file/directory from " << wlepconstants::jpg_extension
+		<< " to " << wlepconstants::file_extension << " (default)\n";
+
+	std::cerr << "\t-W - Converts desired file/directory from " << wlepconstants::jpg_extension
+		<< " to " << wlepconstants::file_extension << " and REMOVES all original " << wlepconstants::jpg_extension << " files\n";
+
 	// Examples
 	std::cerr << "Examples:\n\tWinLep test.jpg --> Converts test.jpg and saves it as test" << wlepconstants::file_extension
 		<< "\n\tWinLep test.jpg picture --> Converts test.jpg and saves it as picture" << wlepconstants::file_extension
-		<< "\n\tWinLep test.jpg out" << wlepconstants::file_extension
+		<< "\n\tWinLep -w test.jpg out" << wlepconstants::file_extension
 		<< " --> Converts test.jpg and saves it as out" << wlepconstants::file_extension
-		<< "\n\tWinLep -d . --> Converts all the .jpg/.jpeg images in the current directory to " << wlepconstants::file_extension
+		<< "\n\tWinLep -j -d . --> Converts all the " << wlepconstants::file_extension 
+		<< " images in the current directory to " << wlepconstants::jpg_extension
+
 		<< "\n\tWinLep -d . wlep_images --> Converts all the .jpg/.jpeg images in the current directory"
 		<< "\n\t\t\tand saves them into wlep_images folder."
-		<< "\n\tWinLep -D . --> Converts all .jpg/.jpeg images in the current directory and all of its subdirectories"
+		<< "\n\tWinLep -w -D . --> Converts all .jpg/.jpeg images in the current directory and all of its subdirectories"
 		<< "\n\t\t\tConverted files are created in the same subfolders as the original ones."
-		<< "\n\tWinLep -D . test --> Converts all .jpg/.jpeg images in the current folder and writes them in"
-		<< "\n\t\t\tthe subfolder 'test' creating the original subfolder structure.";
+		<< "\n\tWinLep -j -D . pics --> Converts all "<< wlepconstants::file_extension << " images in the current folder to "
+		<< wlepconstants::jpg_extension << " and writes them in"
+		<< "\n\t\t\tthe subfolder 'pics' creating the original subfolder structure.";
 }
