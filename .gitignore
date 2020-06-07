@@ -1,7 +1,8 @@
 .vs/
 *x64/
 *Debug/
-
+pics
+wleps
 # Prerequisites
 *.d
 
