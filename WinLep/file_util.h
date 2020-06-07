@@ -1,8 +1,9 @@
 #pragma once
 #include <vector>
 #include <fstream>
-#include <iostream>
 #include "exception_util.h"
+#include "string_util.h"
+#include <Windows.h>
 
 typedef std::basic_fstream<unsigned char, std::char_traits<unsigned char>> uFstream;
 typedef unsigned char uChar;
@@ -34,6 +35,19 @@ namespace wleputils {
 				wleputils::ExceptionUtil::throwAndPrintException
 					<std::invalid_argument>("Error while opening file stream!", "Filename cannot be empty!");
 			}
+			
+			std::vector<std::string> split = wleputils::StringUtil::split(filename, "\\");
+			std::string dir = "";
+			// -1 Because the last one is the filename
+			for (int i = 0; i < split.size() - 1; i++) {
+				dir +=  split[i] + "\\";
+				if (!directoryExists(dir)) {
+					if (!CreateDirectoryA(dir.c_str(), NULL)) {
+						std::string msg = "Error while creating folder " + dir;
+						wleputils::ExceptionUtil::throwAndPrintException<std::exception>(msg);
+					}
+				}
+			}
 
 			stream.open(filename, mode | std::ios::binary);
 
@@ -64,9 +78,22 @@ namespace wleputils {
 
 			return "";
 		}
+		
+		static inline bool directoryExists(const std::string &path) {
+			DWORD attr = GetFileAttributesA(path.c_str());
+			return (attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_DIRECTORY));
+		}
 
-		static inline std::string getFileNameWithoutExtension(std::string &filename) {
-			std::string::size_type idx = filename.find('.');
+		static std::string getFileNameWithoutExtension(const std::string &filename) {
+			std::string::size_type idx;
+			// Skip the first '.'
+			// Because the function that finds all the files
+			// includes the current directory '.'
+			if (filename[0] == '.') {
+				idx = filename.find('.', 1);
+			} else {
+				idx = filename.find('.');
+			}
 
 			if (idx != std::string::npos) {
 				return filename.substr(0, idx);

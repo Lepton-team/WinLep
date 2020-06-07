@@ -1,4 +1,3 @@
-#define TIME
 #define DEBUG
 //#define PRINT_THUMBNAIL
 
@@ -125,12 +124,6 @@ size_t wlep::WLepWriter::writeWinLepFile() {
 #endif // TIME
 
 	size_t lepton_data_written = writeLeptonData();
-	wleputils::FileUtil::closeFileStream(this->file_);
-
-#ifdef DEBUG
-	std::cerr << "WinLep filesize: " << header_written + lepton_data_written << " B\n";
-#endif // DEBUG
-
 	wleputils::FileUtil::closeFileStream(this->file_);
 
 	return header_written + lepton_data_written;

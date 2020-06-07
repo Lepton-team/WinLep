@@ -6,17 +6,15 @@ namespace wlep {
 
 	class Directory {
 	private:
-		std::string dir_path_;
+		std::wstring dir_path_;
 		std::vector<std::string> files_;
-		std::vector<std::string> subdirectory_names_;
-		std::vector<wlep::Directory> subdirectories_; // TODO ?
+		std::vector<std::wstring> subdirectory_names_;
 
 	public:
-		Directory(const std::string &dir_path);
+		Directory(const std::string &dir_path, bool recursive = false, bool ommit_current_directory = true);
 		std::vector<std::string> getAllFiles(const std::initializer_list<std::string>file_extension);
 		std::vector<std::string> getAllFiles();
-		std::vector<std::string> getAllSubDirectoryNames();
-
+		std::vector<std::wstring> getAllSubDirectoryNames();
 	};
 }
 

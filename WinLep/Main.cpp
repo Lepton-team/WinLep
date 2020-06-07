@@ -62,7 +62,7 @@ void convertAndWriteFiles(std::vector<std::string> &in_filenames, std::vector<st
 		size_t bytes_written = writer.writeWinLepFile();
 #ifdef TIME
 		clock_t end = std::clock();
-		std::cerr << "[TIME] Converting " << out_filenames[i]
+		std::cerr << "[TIME] Writing  " << out_filenames[i]
 			<< " and converting it to lepton took " << diffClock(end, start) << "ms\n";
 #endif // TIME
 		std::cerr << "[INFO] Converted " << in_filenames[i] << " --> "
@@ -149,9 +149,9 @@ int main(int argc, char **argv) {
 						output_dir += '\\';
 					}
 				}
-
 				wlep::Directory *dir = new wlep::Directory(argv[i + 1]);
 				in_filenames = dir->getAllFiles({"jpg", "jpeg"});
+
 				for (std::string filename : in_filenames) {
 					out_filenames.push_back(
 						output_dir
@@ -159,11 +159,37 @@ int main(int argc, char **argv) {
 						+ wlepconstants::file_extension);
 				}
 				delete dir;
-				// TODO: For now ?
 				break;
 				// Convert all .jpg/.jpeg images in given directory and all of its subdirectories
 			} else if (strcmp(argv[i], "-D") == 0) {
-				// TODO: Implement
+				// No directory name
+				if (argc < i + 1) {
+					wleputils::ExceptionUtil::printErrorMsg("Enter a directory name!");
+					printHelp();
+					return -1;
+				}
+
+				std::string output_dir = "";
+				bool output_is_provided = false;
+				// [output directory] is provided
+				if (argc > (i + 2)) {
+					output_dir = argv[i + 2];
+					if (output_dir[output_dir.length() - 1] != '\\') {
+						output_dir += '\\';
+					}
+					output_is_provided = true;
+				}
+
+				wlep::Directory *dir = new wlep::Directory(argv[i + 1], true); 
+				in_filenames = dir->getAllFiles({"jpg", "jpeg"});
+
+				for (std::string &filename : in_filenames) {
+					out_filenames.push_back(
+						output_dir
+						+ wleputils::FileUtil::getFileNameWithoutExtension(filename)
+						+ wlepconstants::file_extension);
+				}
+				delete dir;
 				break;
 			} else {
 				std::string msg = "Unknown option " + std::string(argv[i]);
@@ -185,8 +211,6 @@ int main(int argc, char **argv) {
 
 	convertAndWriteFiles(in_filenames, out_filenames);
 
-	std::cout << "Done.\n";
-
 	return 0;
 }
 
@@ -201,16 +225,18 @@ void printHelp() {
 	std::cerr << "\nOptions:\n\t-help:\tShow this menu\n";
 
 	// Options
-	std::cerr << "\t-d <directory> [output_directory]: - Converts all .jpg/.jpeg files in given directory" <<
+	std::cerr << "\t-d <directory> [output_directory]: - Converts all .jpg/.jpeg files in the given directory" <<
 		"\n\t\t\tto [output_directory]. Orginal filenames will be used, with the .wlep extension" <<
 		"\n\t\t\tIf no [output_directory] is provided, the files will be outputted to [directory]." <<
-		"\n\t\t\tIf [output_directory] is provided, it must exist.\n";
+		"\n\t\t\tIf [output_directory] is provided and it doesn't exists, it's created.\n";
 
-	std::cerr << "\t-D <directory> [output_directory]: - Converts all .jpg/.jpeg files in given directory" <<
+	std::cerr << "\t-D <directory> [output_directory]: - Converts all .jpg/.jpeg files in the given directory" <<
 		"\n\t\t\tand all of its subdirectories to [output_directory]." <<
-		"\n\t\t\tOrginal filenames will be used, with the .wlep extension." <<
+		"\n\t\t\tOrginal filenames will be used with the added .wlep extension." <<
 		"\n\t\t\tIf no [output_directory] is provided, the files will be outputted to [directory]" <<
-		"\n\t\t\tIf [output_directory] is provided, it must exist.\n";
+		"\n\t\t\tIf [output_directory] is provided and it doesn't exists, it's created" <<
+		"\n\t\t\talong with all other subdirectories." << 
+		"\n\t\t\tAll original subdirectory names are preserved and created in the same structure\n";
 
 	// Examples
 	std::cerr << "\nExamples:\n\tWinLep test.jpg --> Converts test.jpg and saves it as test" << wlepconstants::file_extension

@@ -9,7 +9,40 @@
 #include <algorithm>
 #include <initializer_list>
 
-wlep::Directory::Directory(const std::string &dir_path) {
+void findFiles(const std::wstring &directory, std::vector<std::wstring> &files, bool recursive) {
+	std::wstring tmp = directory + L"\\*";
+	WIN32_FIND_DATAW file;
+	HANDLE search_handle = FindFirstFileW(tmp.c_str(), &file);
+	if (search_handle != INVALID_HANDLE_VALUE) {
+		std::vector<std::wstring> directories;
+		do {
+			if (file.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+				// Ignore . and .. directories
+				if (!lstrcmpW(file.cFileName, L".") || !lstrcmpW(file.cFileName, L"..")) {
+					continue;
+				}
+			} else {
+				tmp = directory + L"\\" + std::wstring(file.cFileName);
+				files.push_back(tmp);
+			}
+			tmp = directory + L"\\" + std::wstring(file.cFileName);
+			if (file.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+				directories.push_back(tmp);
+			}
+		} while (FindNextFileW(search_handle, &file));
+
+		if (!FindClose(search_handle)) {
+			wleputils::ExceptionUtil::throwAndPrintException
+				<std::exception>("Error while closing handle used for finding files!");
+		}
+		if (recursive) {
+			for (auto it = directories.begin(), end = directories.end(); it != end; it++) {
+				findFiles(*it, files, recursive);
+			}
+		}
+	}
+}
+wlep::Directory::Directory(const std::string &dir_path, bool recursive, bool ommit_current_directory) {
 	if (dir_path.empty()) {
 		wleputils::ExceptionUtil::throwAndPrintException
 			<std::invalid_argument>("Directory path cannot be empty!");
@@ -20,64 +53,23 @@ wlep::Directory::Directory(const std::string &dir_path) {
 		wleputils::ExceptionUtil::throwAndPrintException
 			<std::invalid_argument>("Directory path is too long!");
 	}
-	this->dir_path_ = dir_path;
-#ifdef DEBUG
-	std::cerr << "Target directory: " << dir_path << "\n";
-#endif // DEBUG
-
-	char *dir = new char[MAX_PATH];
-
-	// Prepare string for use with FindFile functions.  First, copy the
-	// string to a buffer, then append '\*' to the directory name.
-	StringCchCopyA(dir, MAX_PATH, dir_path.c_str());
-	StringCchCatA(dir, MAX_PATH, "\\*");
-
-	WIN32_FIND_DATA find_data;
-	HANDLE find_handle = FindFirstFileA(dir, &find_data);
-
-	if (find_handle == INVALID_HANDLE_VALUE) {
-		wleputils::ExceptionUtil::throwAndPrintException
-			<std::exception>("Error while finding first file!");
-	}
-#ifdef DEBUG
-	LARGE_INTEGER filesize;
-#endif // DEBUG
-
+	this->dir_path_ = wleputils::StringUtil::toWideString(dir_path);
 	this->files_ = std::vector<std::string>();
-	this->subdirectory_names_ = std::vector<std::string>();
 
-	// List all files and subdirectories in this directory 
-	do {
-		if (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-#ifdef DEBUG
-			std::cerr << "<DIR> " << find_data.cFileName << "\n";
-#endif // DEBUG
-			this->subdirectory_names_.push_back(find_data.cFileName);
-			// It's a file
-		} else {
-			std::string filename = find_data.cFileName;
-			if (filename[0] != '.') {
-				this->files_.push_back(find_data.cFileName);
+	std::vector<std::wstring> wFiles;
+
+	findFiles(this->dir_path_, wFiles, recursive);
+	// Well ...
+	for (const auto &file : wFiles) {
+		std::string str_file = wleputils::StringUtil::wideStringToString(file);
+		if (ommit_current_directory) {
+			auto idx = str_file.find(dir_path);
+			if (idx != std::string::npos) {
+				// + 1 for the '\'
+				str_file = str_file.substr(idx + dir_path.length() + 1);
 			}
-#ifdef DEBUG
-			filesize.LowPart = find_data.nFileSizeLow;
-			filesize.HighPart = find_data.nFileSizeHigh;
-			std::cerr << find_data.cFileName << "\t" << filesize.QuadPart << " B\n";
-#endif // DEBUG
-
 		}
-	} while (FindNextFileA(find_handle, &find_data));
-
-	delete[] dir;
-
-	if (GetLastError() != ERROR_NO_MORE_FILES) {
-		wleputils::ExceptionUtil::throwAndPrintException
-			<std::exception>("Error while getting files from directory!");
-	}
-
-	if (!FindClose(find_handle)) {
-		wleputils::ExceptionUtil::throwAndPrintException
-			<std::exception>("Error while closing handle used for finding files!");
+		this->files_.push_back(str_file);
 	}
 }
 
@@ -105,6 +97,7 @@ std::vector<std::string> wlep::Directory::getAllFiles() {
 	return this->files_;
 }
 
-std::vector<std::string> wlep::Directory::getAllSubDirectoryNames() {
+std::vector<std::wstring> wlep::Directory::getAllSubDirectoryNames() {
 	return this->subdirectory_names_;
 }
+
