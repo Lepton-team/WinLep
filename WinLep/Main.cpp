@@ -1,13 +1,11 @@
 #define TIME
 #include <iostream>
-#include <vector>
 #include <string>
 
 #ifdef TIME
 #include <ctime>
 #endif // TIME
 
-#include "wlep_reader.h"
 #include "wlep_writer.h"
 #include "wlep_image.h"
 #include "file_util.h"
@@ -48,7 +46,8 @@ void convertAndWriteFiles(std::vector<std::string> &in_filenames, std::vector<st
 		return;
 	}
 
-	// Both vectors should have the same size
+	// Both vectors should have the same size 
+	// since every input filename should have a corresponding output filename
 	if (in_filenames.size() != out_filenames.size()) {
 		wleputils::ExceptionUtil::printErrorMsg("Provided filename vectors doesn't have the same size!");
 		return;
@@ -67,7 +66,6 @@ void convertAndWriteFiles(std::vector<std::string> &in_filenames, std::vector<st
 #endif // TIME
 		std::cerr << "[INFO] Converted " << in_filenames[i] << " --> "
 			<< out_filenames[i] << " (" << bytes_written / 1000.0f << "kB)\n\n"; 
-
 	}
 }
 
@@ -170,14 +168,12 @@ int main(int argc, char **argv) {
 				}
 
 				std::string output_dir = "";
-				bool output_is_provided = false;
 				// [output directory] is provided
 				if (argc > (i + 2)) {
 					output_dir = argv[i + 2];
 					if (output_dir[output_dir.length() - 1] != '\\') {
 						output_dir += '\\';
 					}
-					output_is_provided = true;
 				}
 
 				wlep::Directory *dir = new wlep::Directory(argv[i + 1], true); 
@@ -215,6 +211,7 @@ int main(int argc, char **argv) {
 }
 
 void printHelp() {
+	// TODO: Put the help menu into a text file and just print it.
 	printWinLepVersion();
 	// General info
 	std::cerr << "Make sure lepton.exe is in your PATH\n\n";
@@ -246,7 +243,4 @@ void printHelp() {
 		<< "\n\tWinLep -d . --> Converts all the .jpg/.jpeg images in the current directory to " << wlepconstants::file_extension
 		<< "\n\tWinLep -d . wlep_images --> Converts all the .jpg/.jpeg images in the current directory" <<
 		"\n\t\t\t\tand saves them into wlep_images folder. \n";
-
-
-
 }

@@ -5,7 +5,6 @@
 #include "file_util.h"
 #include "string_util.h"
 #include <Windows.h>
-#include <strsafe.h>
 #include <algorithm>
 #include <initializer_list>
 
@@ -42,14 +41,14 @@ void findFiles(const std::wstring &directory, std::vector<std::wstring> &files, 
 		}
 	}
 }
+
 wlep::Directory::Directory(const std::string &dir_path, bool recursive, bool ommit_current_directory) {
 	if (dir_path.empty()) {
 		wleputils::ExceptionUtil::throwAndPrintException
 			<std::invalid_argument>("Directory path cannot be empty!");
 	}
-	// Check that the input path plus 3 is not longer than MAX_PATH.
-	// Three characters are for the "\*" plus NULL appended below.
-	if (dir_path.length() > (MAX_PATH - 3)) {
+	// Check that the input path is not longer than MAX_PATH.
+	if (dir_path.length() > MAX_PATH) {
 		wleputils::ExceptionUtil::throwAndPrintException
 			<std::invalid_argument>("Directory path is too long!");
 	}
@@ -96,8 +95,3 @@ std::vector<std::string> wlep::Directory::getAllFiles(std::initializer_list<std:
 std::vector<std::string> wlep::Directory::getAllFiles() {
 	return this->files_;
 }
-
-std::vector<std::wstring> wlep::Directory::getAllSubDirectoryNames() {
-	return this->subdirectory_names_;
-}
-

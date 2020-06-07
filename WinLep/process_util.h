@@ -61,7 +61,7 @@ namespace wleputils {
 
 			ZeroMemory(&start_info, sizeof(start_info));
 			start_info.cb = sizeof(start_info);
-			start_info.hStdError = stderr; // GetStdHandle(STD_ERROR_HANDLE); // TODO: Suprress 
+			start_info.hStdError = stderr; // GetStdHandle(STD_ERROR_HANDLE); // TODO: Suprress ?
 			start_info.hStdOutput = child_out_write;
 			start_info.hStdInput = child_in_read; // TODO: input_file_handle ?
 			start_info.dwFlags |= STARTF_USESTDHANDLES;
@@ -98,7 +98,7 @@ namespace wleputils {
 		}
 
 		/*
-			Writes a given file to pipe		
+			Writes a given file to pipe
 		*/
 		static void writeToPipe(HANDLE &input_file, HANDLE &child_write) {
 			constexpr unsigned int buff_size = 1024 * 4; // 4 KB - size of one page

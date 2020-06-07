@@ -19,18 +19,26 @@ namespace wleputils {
 							   return std::tolower(c);
 						   });
 		}
-		// convert UTF-8 string to wstring
+		
+		/*
+			Convert UTF-8 string to wstring
+		*/
 		static inline std::wstring toWideString(const std::string &str) {
 			std::wstring_convert<std::codecvt_utf8<wchar_t>> convertor;
 			return convertor.from_bytes(str);
 		}
 
-		// convert wstring to UTF-8 string
+		/*
+			Convert wstring to UTF-8 string
+		*/
 		static inline std::string wideStringToString(const std::wstring &str) {
 			std::wstring_convert<std::codecvt_utf8<wchar_t>> convertor;
 			return convertor.to_bytes(str);
 		}
 
+		/*
+			Splits a string to vector of substrings using the given delimiter
+		*/
 		static std::vector<std::string> split(const std::string &str, const std::string &delim) {
 			std::vector<std::string> tokens;
 			size_t prev = 0, pos = 0;

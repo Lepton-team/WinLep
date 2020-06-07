@@ -8,13 +8,10 @@
 namespace wlep {
 	class WLepHeader {
 	private:
-		std::streampos calculateFileSize(std::ifstream &file);
-		std::vector<unsigned char> createThumbnailData(std::ifstream &thumbnail);
 		void createThumbnailData(IStream *thumbnail_data_stream, ULONGLONG size);
 		void createThumbnailSize(size_t size);
 
 		bool isBigEndian();
-
 
 	public:
 		std::vector<unsigned char> thumbnail_size_arr;
@@ -22,7 +19,6 @@ namespace wlep {
 
 		std::vector<unsigned char> thumbnail_data;
 		std::vector<unsigned char> exif_data;
-		std::vector<unsigned char> data;
 		std::vector<unsigned char> header_prefix;
 		std::vector<unsigned char> version;
 

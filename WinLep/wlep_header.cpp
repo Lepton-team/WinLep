@@ -1,32 +1,6 @@
 #include "wlep_header.h"
 #include "vector_util.h"
 #include "exception_util.h"
-#include <stdio.h>
-
-std::streampos wlep::WLepHeader::calculateFileSize(std::ifstream &file) {
-	file.seekg(0, file.beg);
-
-	std::streampos size = file.tellg();
-	file.seekg(0, file.end);
-	size = file.tellg() - size;
-
-	file.seekg(0, file.beg);
-
-	return size;
-}
-
-// FIXME: Temporary
-std::vector<uChar> wlep::WLepHeader::createThumbnailData(std::ifstream &thumbnail) {
-	std::vector<uChar> res;
-
-	uChar ch = thumbnail.get();
-	while (thumbnail.good()) {
-		res.push_back(ch);
-		ch = thumbnail.get();
-	}
-
-	return res;
-}
 
 HRESULT seekBackToBeginning(IStream *stream) {
 	LARGE_INTEGER li;
@@ -86,7 +60,6 @@ wlep::WLepHeader::WLepHeader(IStream *thumbnail_data_stream) {
 		wleputils::ExceptionUtil::throwAndPrintException<std::invalid_argument>("Thumbnail data stream cannot be empty!");
 	}
 
-	this->data = std::vector<uChar>();
 	this->thumbnail_size_arr = std::vector<uChar>();
 	this->exif_size_arr = std::vector<uChar>();
 	this->header_prefix = std::vector<uChar>();
@@ -112,7 +85,6 @@ wlep::WLepHeader::WLepHeader() {
 	exif_size_arr = std::vector<uChar>();
 	thumbnail_data = std::vector<uChar>();
 	exif_data = std::vector<uChar>();
-	data = std::vector<uChar>();
 	header_prefix = std::vector<uChar>();
 	version = std::vector<uChar>();
 

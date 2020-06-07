@@ -2,7 +2,6 @@
 
 #include <fstream>
 #include "wlep_header.h"
-#include <Windows.h>
 
 namespace wlep {
 	class WLepWriter {
@@ -23,7 +22,6 @@ namespace wlep {
 		~WLepWriter();
 
 		size_t writeWinLepFile();
-
 		std::string debug_str();
 	};
 }

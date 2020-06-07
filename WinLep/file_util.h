@@ -8,10 +8,6 @@
 typedef std::basic_fstream<unsigned char, std::char_traits<unsigned char>> uFstream;
 typedef unsigned char uChar;
 
-/*
-	Once write fails, all further operations on the stream are no-ops, until the error is cleared.
-	Including tellp, which is required to return -1 if any previous operation has failed.
-*/
 namespace wleputils {
 	class FileUtil {
 	public:
@@ -25,6 +21,8 @@ namespace wleputils {
 		}
 		/*
 			Opens a file via stream in binary mode
+			If the path to the given filename doesn't exist, it'll be created
+			so the desired file can be created
 		*/
 		static void openFileStream(uFstream &stream, std::string &filename, int mode) {
 			if (stream.is_open()) {
@@ -35,12 +33,12 @@ namespace wleputils {
 				wleputils::ExceptionUtil::throwAndPrintException
 					<std::invalid_argument>("Error while opening file stream!", "Filename cannot be empty!");
 			}
-			
+
 			std::vector<std::string> split = wleputils::StringUtil::split(filename, "\\");
 			std::string dir = "";
 			// -1 Because the last one is the filename
 			for (int i = 0; i < split.size() - 1; i++) {
-				dir +=  split[i] + "\\";
+				dir += split[i] + "\\";
 				if (!directoryExists(dir)) {
 					if (!CreateDirectoryA(dir.c_str(), NULL)) {
 						std::string msg = "Error while creating folder " + dir;
@@ -65,6 +63,7 @@ namespace wleputils {
 			// Stop eating new lines in binary mode!!!
 			stream.unsetf(std::ios::skipws);
 		}
+
 		/*
 			Returns a file extension of a given file
 		*/
@@ -78,22 +77,18 @@ namespace wleputils {
 
 			return "";
 		}
-		
+
+		/*
+			Checks if a given directory exists
+		*/
 		static inline bool directoryExists(const std::string &path) {
 			DWORD attr = GetFileAttributesA(path.c_str());
 			return (attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_DIRECTORY));
 		}
 
-		static std::string getFileNameWithoutExtension(const std::string &filename) {
+		static inline std::string getFileNameWithoutExtension(const std::string &filename) {
 			std::string::size_type idx;
-			// Skip the first '.'
-			// Because the function that finds all the files
-			// includes the current directory '.'
-			if (filename[0] == '.') {
-				idx = filename.find('.', 1);
-			} else {
-				idx = filename.find('.');
-			}
+			idx = filename.find('.');
 
 			if (idx != std::string::npos) {
 				return filename.substr(0, idx);
@@ -101,6 +96,11 @@ namespace wleputils {
 
 			return "";
 		}
+
+		/*
+			Once write fails, all further operations on the stream are no-ops, until the error is cleared.
+			Including tellp, which is required to return -1 if any previous operation has failed.
+		*/
 
 		/*
 			Writes any vector to a file
@@ -120,6 +120,7 @@ namespace wleputils {
 
 			return pos < 0 ? -1 : pos - before;
 		}
+
 		/*
 			Writes any array to a file
 			Returns the bytes written
@@ -138,6 +139,7 @@ namespace wleputils {
 
 			return pos < 0 ? -1 : pos - before;
 		}
+
 		/*
 			Writes any single item to a file
 			Returns the bytes written
