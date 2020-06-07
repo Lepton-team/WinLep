@@ -110,6 +110,22 @@ std::string processOutputFilename(char *filename) {
 	return str_filename;
 }
 
+void setupFilenames(const std::string &output_dir, const std::string &input_dir, 
+					std::vector<std::string> &in_filenames, std::vector<std::string> &out_filenames, bool recursive) {
+
+	wlep::Directory *dir = new wlep::Directory(input_dir, recursive);
+	in_filenames = dir->getAllFiles({"jpg", "jpeg"});
+
+	for (std::string &filename : in_filenames) {
+		out_filenames.push_back(
+			output_dir
+			+ wleputils::FileUtil::getFileNameWithoutExtension(filename)
+			+ wlepconstants::file_extension);
+	}
+
+	delete dir;
+}
+
 int main(int argc, char **argv) {
 #ifndef _WIN32
 	std::cerr << "[ERROR] winLep is implemented only for Windows OS! (Hence the name ...)\n";
@@ -124,6 +140,8 @@ int main(int argc, char **argv) {
 
 	std::vector<std::string> in_filenames;
 	std::vector<std::string> out_filenames;
+
+	// TODO: Remove all break statements and find a way to chain multiple flags together
 
 	for (int i = 1; i < argc; i++) {
 		// Options
@@ -147,16 +165,7 @@ int main(int argc, char **argv) {
 						output_dir += '\\';
 					}
 				}
-				wlep::Directory *dir = new wlep::Directory(argv[i + 1]);
-				in_filenames = dir->getAllFiles({"jpg", "jpeg"});
-
-				for (std::string filename : in_filenames) {
-					out_filenames.push_back(
-						output_dir
-						+ wleputils::FileUtil::getFileNameWithoutExtension(filename)
-						+ wlepconstants::file_extension);
-				}
-				delete dir;
+				setupFilenames(output_dir, argv[i + 1], in_filenames, out_filenames, false);
 				break;
 				// Convert all .jpg/.jpeg images in given directory and all of its subdirectories
 			} else if (strcmp(argv[i], "-D") == 0) {
@@ -175,17 +184,7 @@ int main(int argc, char **argv) {
 						output_dir += '\\';
 					}
 				}
-
-				wlep::Directory *dir = new wlep::Directory(argv[i + 1], true); 
-				in_filenames = dir->getAllFiles({"jpg", "jpeg"});
-
-				for (std::string &filename : in_filenames) {
-					out_filenames.push_back(
-						output_dir
-						+ wleputils::FileUtil::getFileNameWithoutExtension(filename)
-						+ wlepconstants::file_extension);
-				}
-				delete dir;
+				setupFilenames(output_dir, argv[i + 1], in_filenames, out_filenames, true);
 				break;
 			} else {
 				std::string msg = "Unknown option " + std::string(argv[i]);
@@ -204,8 +203,17 @@ int main(int argc, char **argv) {
 			break;
 		}
 	}
+#ifdef TIME
+	clock_t start = std::clock();
+#endif // TIME
 
 	convertAndWriteFiles(in_filenames, out_filenames);
+
+#ifdef TIME
+	clock_t end = std::clock();
+	std::cerr << "[TIME] TOTAL: Writing and converting to lepton " << 
+		"all the images above took " << diffClock(end, start) << "ms\n";
+#endif // TIME
 
 	return 0;
 }
@@ -223,15 +231,15 @@ void printHelp() {
 
 	// Options
 	std::cerr << "\t-d <directory> [output_directory]: - Converts all .jpg/.jpeg files in the given directory" <<
-		"\n\t\t\tto [output_directory]. Orginal filenames will be used, with the .wlep extension" <<
+		"\n\t\t\tto [output_directory]. Original filenames will be used, with the .wlep extension" <<
 		"\n\t\t\tIf no [output_directory] is provided, the files will be outputted to [directory]." <<
-		"\n\t\t\tIf [output_directory] is provided and it doesn't exists, it's created.\n";
+		"\n\t\t\tIf [output_directory] is provided and it doesn't exist, it's created.\n";
 
 	std::cerr << "\t-D <directory> [output_directory]: - Converts all .jpg/.jpeg files in the given directory" <<
 		"\n\t\t\tand all of its subdirectories to [output_directory]." <<
-		"\n\t\t\tOrginal filenames will be used with the added .wlep extension." <<
+		"\n\t\t\tOriginal filenames will be used with the added .wlep extension." <<
 		"\n\t\t\tIf no [output_directory] is provided, the files will be outputted to [directory]" <<
-		"\n\t\t\tIf [output_directory] is provided and it doesn't exists, it's created" <<
+		"\n\t\t\tIf [output_directory] is provided and it doesn't exist, it's created" <<
 		"\n\t\t\talong with all other subdirectories." << 
 		"\n\t\t\tAll original subdirectory names are preserved and created in the same structure\n";
 
