@@ -115,8 +115,7 @@ size_t wlep::WLepWriter::writeWinLepFile() {
 size_t wlep::WLepWriter::writeJpgFile(std::vector<uChar> &lepton_data) {
 	wleputils::FileUtil::openFileStream(this->jpg_file_, this->jpg_filename_, std::ios::out);
 	wlep::LeptonConverter converter;
-
-	//converter.convertLeptonToJpg(lepton_data);
+	std::vector<uChar> jpg_data = converter.convertLeptonToJpg(lepton_data);
 	//wleputils::ImageUtil::save(this->jpg_filename_, );
 
 	wleputils::FileUtil::closeFileStream(this->jpg_file_);

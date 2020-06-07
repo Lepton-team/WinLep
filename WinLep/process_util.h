@@ -98,7 +98,21 @@ namespace wleputils {
 		}
 
 		/*
-			Writes a given file to pipe
+			Write a vector of bytes to pipe		
+		*/
+		static void writeToPipe(std::vector<BYTE> &data, HANDLE &child_write) {
+			DWORD written_bytes = 0;
+			WriteFile(child_write, data.data(), data.size(), &written_bytes, NULL);
+
+			// Close the pipe handle so the child process stops reading. 
+			if (!CloseHandle(child_write)) {
+				wleputils::ExceptionUtil::throwAndPrintException
+					<std::exception>("Error while closing child handle!", GetLastError());
+			}
+		}
+
+		/*
+			Write a given file to pipe
 		*/
 		static void writeToPipe(HANDLE &input_file, HANDLE &child_write) {
 			constexpr unsigned int buff_size = 1024 * 4; // 4 KB - size of one page
@@ -129,7 +143,7 @@ namespace wleputils {
 
 			if (!CloseHandle(input_file)) {
 				wleputils::ExceptionUtil::throwAndPrintException
-					<std::exception>("Error while closing file handles!", GetLastError());
+					<std::exception>("Error while closing file handle!", GetLastError());
 			}
 		}
 
@@ -138,7 +152,7 @@ namespace wleputils {
 			and write to the parent process's pipe for STDOUT.
 			Stop when there is no more data.
 		*/
-		static void readFromPipeToBuffer(HANDLE child_read, std::vector<BYTE> &lepton_data) {
+		static void readFromPipeToBuffer(HANDLE child_read, std::vector<BYTE> &data) {
 			constexpr unsigned int buff_size = 1024 * 4; // 4 KB - size of one page
 			DWORD read_bytes = 0;
 			DWORD written_bytes = 0;
@@ -151,7 +165,7 @@ namespace wleputils {
 					break;
 				}
 				// Write the buffer to lepton_data
-				lepton_data.insert(lepton_data.end(), &buff[0], &buff[read_bytes]);
+				data.insert(data.end(), &buff[0], &buff[read_bytes]);
 			}
 
 			delete[] buff;
