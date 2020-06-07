@@ -13,26 +13,7 @@
 #include <ctime>
 #endif // TIME
 
-
-wlep::WLepWriter::WLepWriter(std::string &wlep_filename, wlep::WLepHeader &header)
-	: header(header) {
-	if (wlep_filename.empty()) {
-		wleputils::ExceptionUtil::throwAndPrintException<std::invalid_argument>("Filename cannot be empty!");
-	}
-
-	this->wlep_filename_ = wlep_filename;
-}
-
-wlep::WLepWriter::WLepWriter(std::string &wlep_filename, IStream *thumbnail_data) {
-	if (wlep_filename.empty()) {
-		wleputils::ExceptionUtil::throwAndPrintException<std::invalid_argument>("Filename cannot be empty!");
-	}
-
-	this->wlep_filename_ = wlep_filename;
-	this->header = wlep::WLepHeader(thumbnail_data);
-}
-
-wlep::WLepWriter::WLepWriter(std::string &wlep_filename, std::string &jpg_filename) {
+wlep::WLepWriter::WLepWriter(const std::string &wlep_filename, const std::string &jpg_filename, bool create_thumbnail) {
 	if (wlep_filename.empty() || jpg_filename.empty()) {
 		wleputils::ExceptionUtil::throwAndPrintException<std::invalid_argument>("Filename cannot be empty!");
 	}
@@ -40,25 +21,30 @@ wlep::WLepWriter::WLepWriter(std::string &wlep_filename, std::string &jpg_filena
 	this->wlep_filename_ = wlep_filename;
 	this->jpg_filename_ = jpg_filename;
 
-	wlep::WLepImage *image = new wlep::WLepImage(jpg_filename);
-	IStream *thumbnail = nullptr;
+	if (create_thumbnail) {
+		wlep::WLepImage *image = new wlep::WLepImage(jpg_filename);
+		IStream *thumbnail = nullptr;
+		image->createThumbnail(128);
+		thumbnail = image->getThumbnailAsStream();
 
-	image->createThumbnail(128);
-	thumbnail = image->getThumbnailAsStream();
-
-	this->header = wlep::WLepHeader(thumbnail);
+		this->header = wlep::WLepHeader(thumbnail);
 
 #ifdef SAVE_THUMBNAIL
-	Gdiplus::Image *img_from_stream = Gdiplus::Image::FromStream(thumbnail);
-	wleputils::ImageUtil::save(L"img_from_stream_to_write.jpg", img_from_stream);
+		Gdiplus::Image *img_from_stream = Gdiplus::Image::FromStream(thumbnail);
+		wleputils::ImageUtil::save(L"img_from_stream_to_write.jpg", img_from_stream);
 #endif // SAVE_THUMBNAIL
 
-	thumbnail->Release();
-	delete image;
+		thumbnail->Release();
+		delete image;
+	} else {
+		this->header = wlep::WLepHeader();
+	}
+
 }
 
 wlep::WLepWriter::~WLepWriter() {
 	wleputils::FileUtil::closeFileStream(this->wlep_file_);
+	wleputils::FileUtil::closeFileStream(this->jpg_file_);
 }
 
 #ifdef TIME
@@ -71,7 +57,7 @@ double diffClock(clock_t clock1, clock_t clock2) {
 
 size_t wlep::WLepWriter::writeHeader() {
 	size_t bytes_written = 0;
-	const int items_to_write = 4;
+	constexpr int items_to_write = 4;
 
 	size_t bytes_written_items[items_to_write] = {
 		wleputils::FileUtil::writeToFile<uChar>(this->wlep_file_, this->header.header_prefix),
@@ -124,6 +110,17 @@ size_t wlep::WLepWriter::writeWinLepFile() {
 	wleputils::FileUtil::closeFileStream(this->wlep_file_);
 
 	return header_written + lepton_data_written;
+}
+
+size_t wlep::WLepWriter::writeJpgFile(std::vector<uChar> &lepton_data) {
+	wleputils::FileUtil::openFileStream(this->jpg_file_, this->jpg_filename_, std::ios::out);
+	wlep::LeptonConverter converter;
+
+	//converter.convertLeptonToJpg(lepton_data);
+	//wleputils::ImageUtil::save(this->jpg_filename_, );
+
+	wleputils::FileUtil::closeFileStream(this->jpg_file_);
+	return -1;
 }
 
 std::string wlep::WLepWriter::debug_str() {

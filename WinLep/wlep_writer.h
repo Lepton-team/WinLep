@@ -7,6 +7,7 @@ namespace wlep {
 	class WLepWriter {
 	private:
 		uFstream wlep_file_;
+		uFstream jpg_file_;
 		std::string wlep_filename_;
 		std::string jpg_filename_;
 
@@ -15,13 +16,11 @@ namespace wlep {
 
 	public:
 		wlep::WLepHeader header;
-		WLepWriter(std::string &wlep_filename, wlep::WLepHeader &header);
-		WLepWriter(std::string &wlep_filename, IStream *thumbnail_data);
-		WLepWriter(std::string &wlep_filename, std::string &jpg_filename);
-
+		WLepWriter(const std::string &wlep_filename, const std::string &jpg_filename, bool create_thumbnail = true);
 		~WLepWriter();
 
 		size_t writeWinLepFile();
+		size_t writeJpgFile(std::vector<uChar> &lepton_data);
 		std::string debug_str();
 	};
 }

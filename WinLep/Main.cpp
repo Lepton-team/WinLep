@@ -7,6 +7,7 @@
 #endif // TIME
 
 #include "wlep_writer.h"
+#include "wlep_reader.h"
 #include "wlep_image.h"
 #include "file_util.h"
 #include "directory.h"
@@ -40,32 +41,32 @@ double diffClock(clock_t clock1, clock_t clock2) {
 }
 #endif // TIME
 
-void convertAndWriteFiles(std::vector<std::string> &in_filenames, std::vector<std::string> &out_filenames) {
-	if (in_filenames.empty() || out_filenames.empty()) {
+void convertAndWriteFiles(std::vector<std::string> &jpg_filenames, std::vector<std::string> &wlep_filenames) {
+	if (jpg_filenames.empty() || wlep_filenames.empty()) {
 		wleputils::ExceptionUtil::printErrorMsg("Provided filenames are empty!");
 		return;
 	}
 
 	// Both vectors should have the same size 
 	// since every input filename should have a corresponding output filename
-	if (in_filenames.size() != out_filenames.size()) {
+	if (jpg_filenames.size() != wlep_filenames.size()) {
 		wleputils::ExceptionUtil::printErrorMsg("Provided filename vectors doesn't have the same size!");
 		return;
 	}
 
-	for (int i = 0; i < in_filenames.size(); i++) {
-		wlep::WLepWriter writer(out_filenames[i], in_filenames[i]);
+	for (int i = 0; i < jpg_filenames.size(); i++) {
+		wlep::WLepWriter writer(wlep_filenames[i], jpg_filenames[i]);
 #ifdef TIME
 		clock_t start = std::clock();
 #endif // TIME
 		size_t bytes_written = writer.writeWinLepFile();
 #ifdef TIME
 		clock_t end = std::clock();
-		std::cerr << "[TIME] Writing  " << out_filenames[i]
+		std::cerr << "[TIME] Writing  " << wlep_filenames[i]
 			<< " and converting it to lepton took " << diffClock(end, start) << "ms\n";
 #endif // TIME
-		std::cerr << "[INFO] Converted " << in_filenames[i] << " --> "
-			<< out_filenames[i] << " (" << bytes_written / 1000.0f << "kB)\n\n"; 
+		std::cerr << "[INFO] Converted " << jpg_filenames[i] << " --> "
+			<< wlep_filenames[i] << " (" << bytes_written / 1000.0f << "kB)\n\n";
 	}
 }
 
@@ -139,8 +140,14 @@ int main(int argc, char **argv) {
 	}
 	printWinLepVersion();
 
-	std::vector<std::string> in_filenames;
-	std::vector<std::string> out_filenames;
+	wlep::WLepReader reader("test.wlep");
+	std::vector<uChar> lepton_data = reader.validateFileAndReadLeptonData();
+
+	wlep::WLepWriter writer("test.wlep", "hello.jpg", false);
+	writer.writeJpgFile(lepton_data);
+
+	std::vector<std::string> jpg_filenames;
+	std::vector<std::string> wlep_filenames;
 
 	// TODO: Remove all break statements and find a way to chain multiple flags together
 	// TODO: Convert from wlep to jpeg. 
@@ -166,7 +173,7 @@ int main(int argc, char **argv) {
 						output_dir += '\\';
 					}
 				}
-				setupFilenames(output_dir, argv[i + 1], in_filenames, out_filenames, false);
+				setupFilenames(output_dir, argv[i + 1], jpg_filenames, wlep_filenames, false);
 				break;
 				// Convert all .jpg/.jpeg images in given directory and all of its subdirectories
 			} else if (strcmp(argv[i], "-D") == 0) {
@@ -185,7 +192,7 @@ int main(int argc, char **argv) {
 						output_dir += '\\';
 					}
 				}
-				setupFilenames(output_dir, argv[i + 1], in_filenames, out_filenames, true);
+				setupFilenames(output_dir, argv[i + 1], jpg_filenames, wlep_filenames, true);
 				break;
 			} else {
 				std::string msg = "Unknown option " + std::string(argv[i]);
@@ -195,11 +202,11 @@ int main(int argc, char **argv) {
 			}
 			// Convert just one file
 		} else {
-			in_filenames.push_back(processInputFilename(argv[i]));
+			jpg_filenames.push_back(processInputFilename(argv[i]));
 			if (argc > 2) {
-				out_filenames.push_back(processOutputFilename(argv[i + 1]));
+				wlep_filenames.push_back(processOutputFilename(argv[i + 1]));
 			} else {
-				out_filenames.push_back(wleputils::FileUtil::getFileNameWithoutExtension(in_filenames[0]) + wlepconstants::file_extension);
+				wlep_filenames.push_back(wleputils::FileUtil::getFileNameWithoutExtension(jpg_filenames[0]) + wlepconstants::file_extension);
 			}
 			break;
 		}
@@ -208,7 +215,7 @@ int main(int argc, char **argv) {
 	clock_t start = std::clock();
 #endif // TIME
 
-	convertAndWriteFiles(in_filenames, out_filenames);
+	convertAndWriteFiles(jpg_filenames, wlep_filenames);
 
 #ifdef TIME
 	clock_t end = std::clock();

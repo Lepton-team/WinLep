@@ -20,6 +20,7 @@ namespace wlep {
 		~WLepReader();
 
 		std::string debug_str();
-		void readHeader();
+		void readAndValidateHeader(bool read_thumbnail = true);
+		std::vector<unsigned char> validateFileAndReadLeptonData();
 	};
 }
