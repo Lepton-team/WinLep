@@ -143,14 +143,13 @@ int main(int argc, char **argv) {
 	wlep::WLepReader reader("test.wlep");
 	std::vector<uChar> lepton_data = reader.validateFileAndReadLeptonData();
 
-	wlep::WLepWriter writer("test.wlep", "hello.jpg", false);
+	wlep::WLepWriter writer("test.wlep", "test\\hello.jpg", false);
 	writer.writeJpgFile(lepton_data);
 
 	std::vector<std::string> jpg_filenames;
 	std::vector<std::string> wlep_filenames;
 
 	// TODO: Remove all break statements and find a way to chain multiple flags together
-	// TODO: Convert from wlep to jpeg. 
 	for (int i = 1; i < argc; i++) {
 		// Options
 		if (argv[i][0] == '-') {

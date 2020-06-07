@@ -20,7 +20,7 @@ namespace wlep {
 		~WLepWriter();
 
 		size_t writeWinLepFile();
-		size_t writeJpgFile(std::vector<uChar> &lepton_data);
+		size_t writeJpgFile(std::vector<uChar> &lepton_data, bool clear_lepton_data = true);
 		std::string debug_str();
 	};
 }

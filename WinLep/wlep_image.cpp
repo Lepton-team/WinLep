@@ -2,13 +2,43 @@
 
 #include "wlep_image.h"
 #include "file_util.h"
+#include "string_util.h"
 #include "exception_util.h"
 
 wlep::WLepImage::WLepImage(const std::string &filename) {
 	GdiplusStartup(&this->gdiplusToken_, &this->gdiplusStartupInput_, NULL);
-	this->filename_ = std::wstring(filename.begin(), filename.end());
-
+	this->filename_ = wleputils::StringUtil::toWideString(filename);
 	this->image = new Gdiplus::Image(this->filename_.c_str());
+}
+
+wlep::WLepImage::WLepImage(std::vector<BYTE> &jpg_data, const std::string &filename) {
+	GdiplusStartup(&this->gdiplusToken_, &this->gdiplusStartupInput_, NULL);
+	this->filename_ = wleputils::StringUtil::toWideString(filename);
+
+	IStream *jpg_stream;
+
+	mem_ = ::GlobalAlloc(GMEM_MOVEABLE, jpg_data.size());
+	if (!mem_) {
+		wleputils::ExceptionUtil::throwAndPrintException
+			<std::exception>("Error while allocationg memory!");
+	}
+
+	HRESULT hr = ::CreateStreamOnHGlobal(mem_, true, &jpg_stream);
+
+	if (hr != S_OK) {
+		wleputils::ExceptionUtil::throwAndPrintException
+			<std::exception>("Error while creating IStream!");
+	}
+
+	ULONG bytes_written = 0;
+	hr = jpg_stream->Write(jpg_data.data(), jpg_data.size(), &bytes_written);
+
+	if (hr != S_OK) {
+		wleputils::ExceptionUtil::throwAndPrintException
+			<std::exception>("Error while writing jpg data to stream!");
+	}
+
+	this->image = Gdiplus::Image::FromStream(jpg_stream);
 }
 
 wlep::WLepImage::~WLepImage() {
@@ -20,6 +50,10 @@ wlep::WLepImage::~WLepImage() {
 	delete image;
 
 	Gdiplus::GdiplusShutdown(this->gdiplusToken_);
+}
+
+void wlep::WLepImage::save() {
+	wleputils::ImageUtil::save(this->filename_, this->image);
 }
 
 Gdiplus::Image *wlep::WLepImage::createThumbnail(UINT width, UINT height) {
@@ -66,7 +100,7 @@ Gdiplus::Bitmap *wlep::WLepImage::getThumbnailAsBitmap() {
 
 #ifdef DEBUG
 	if (thumbnail_bmp) {
-		std::cout << "Thumbnail bitmap dimensions: " << thumbnail_bmp->GetWidth() << "px x " << thumbnail_bmp->GetHeight() << "px\n";
+		std::cerr << "Thumbnail bitmap dimensions: " << thumbnail_bmp->GetWidth() << "px x " << thumbnail_bmp->GetHeight() << "px\n";
 	}
 #endif // DEBUG
 
@@ -142,8 +176,6 @@ BYTE *wlep::WLepImage::getThumbnailAsRawData() {
 	} else {
 		return stream_data;
 	}
-
-
 
 	delete[] stream_data;
 

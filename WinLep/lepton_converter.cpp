@@ -102,6 +102,7 @@ std::vector<BYTE> wlep::LeptonConverter::convertLeptonToJpg(std::vector<BYTE> &l
 
 	// Input file and child_in_write are closed here
 	wleputils::ProcessUtil::writeToPipe(lepton_data, child_in_write);
+
 	std::vector<BYTE> jpg_data;
 	wleputils::ProcessUtil::readFromPipeToBuffer(child_out_read, jpg_data);
 

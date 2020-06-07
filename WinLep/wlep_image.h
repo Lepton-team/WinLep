@@ -20,7 +20,10 @@ namespace wlep {
 		Gdiplus::Image *thumbnail;
 
 		WLepImage(const std::string &filename);
+		WLepImage(std::vector<BYTE> &jpg_data, const std::string &filename);
 		~WLepImage();
+
+		void save();
 
 		// Doesn't preserve aspect ratio
 		Gdiplus::Image *createThumbnail(UINT width, UINT height);

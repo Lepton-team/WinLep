@@ -71,7 +71,7 @@ namespace wleputils {
 		*/
 		static void save(const std::wstring &filename, Gdiplus::Image *img) {
 			CLSID clsid;
-			std::string str_filename = std::string(filename.begin(), filename.end());
+			std::string str_filename = wleputils::StringUtil::wideStringToString(filename);
 			std::string extension = getFileExtension(str_filename);
 
 			if (extension.empty()) {
@@ -88,6 +88,20 @@ namespace wleputils {
 
 			getEncoderClsid(format.c_str(), &clsid);
 
+			std::vector<std::string> split = wleputils::StringUtil::split(str_filename, "\\");
+			std::string dir = "";
+			// -1 Because the last one is the filename
+			for (int i = 0; i < split.size() - 1; i++) {
+				dir += split[i] + "\\";
+			// Create all the necessary subfolders
+				if (!directoryExists(dir)) {
+					if (!CreateDirectoryA(dir.c_str(), NULL)) {
+						std::string msg = "Error while creating folder " + dir;
+						wleputils::ExceptionUtil::throwAndPrintException<std::exception>(msg);
+					}
+				}
+			}
+
 			// Save the image
 			if (img->Save(filename.c_str(), &clsid) != Gdiplus::Status::Ok) {
 				std::string msg = "Error while saving " + str_filename + " image to file!";
@@ -96,8 +110,17 @@ namespace wleputils {
 			}
 		}
 
+
 		/*
-			Saves given image to a given IStream
+			Check if a given directory exists
+		*/
+		static inline bool directoryExists(const std::string &path) {
+			DWORD attr = GetFileAttributesA(path.c_str());
+			return (attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_DIRECTORY));
+		}
+
+		/*
+			Save given image to a given IStream
 		*/
 		static void save(IStream *img_stream, Gdiplus::Image *img) {
 			CLSID clsid;
@@ -112,7 +135,7 @@ namespace wleputils {
 		}
 
 		/*
-			Sets the CLSID to the corresponding encoder for a given format
+			Set the CLSID to the corresponding encoder for a given format
 		*/
 		static int getEncoderClsid(const WCHAR *format, CLSID *pClsid) {
 			UINT num = 0;          // number of image encoders

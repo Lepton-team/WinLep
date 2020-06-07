@@ -152,7 +152,7 @@ namespace wleputils {
 			and write to the parent process's pipe for STDOUT.
 			Stop when there is no more data.
 		*/
-		static void readFromPipeToBuffer(HANDLE child_read, std::vector<BYTE> &data) {
+		static void readFromPipeToBuffer(HANDLE &child_read, std::vector<BYTE> &data) {
 			constexpr unsigned int buff_size = 1024 * 4; // 4 KB - size of one page
 			DWORD read_bytes = 0;
 			DWORD written_bytes = 0;
@@ -164,7 +164,7 @@ namespace wleputils {
 				if (!success || read_bytes == 0) {
 					break;
 				}
-				// Write the buffer to lepton_data
+				// Write the buffer to data
 				data.insert(data.end(), &buff[0], &buff[read_bytes]);
 			}
 

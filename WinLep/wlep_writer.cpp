@@ -112,14 +112,21 @@ size_t wlep::WLepWriter::writeWinLepFile() {
 	return header_written + lepton_data_written;
 }
 
-size_t wlep::WLepWriter::writeJpgFile(std::vector<uChar> &lepton_data) {
-	wleputils::FileUtil::openFileStream(this->jpg_file_, this->jpg_filename_, std::ios::out);
+size_t wlep::WLepWriter::writeJpgFile(std::vector<uChar> &lepton_data, bool clear_lepton_data) {
 	wlep::LeptonConverter converter;
 	std::vector<uChar> jpg_data = converter.convertLeptonToJpg(lepton_data);
-	//wleputils::ImageUtil::save(this->jpg_filename_, );
 
-	wleputils::FileUtil::closeFileStream(this->jpg_file_);
-	return -1;
+	if (clear_lepton_data) {
+		lepton_data.clear();
+		lepton_data = std::vector<uChar>();
+	}
+
+	wlep::WLepImage *image = new wlep::WLepImage(jpg_data, this->jpg_filename_);
+	image->save();
+
+	delete image;
+
+	return jpg_data.size();
 }
 
 std::string wlep::WLepWriter::debug_str() {
