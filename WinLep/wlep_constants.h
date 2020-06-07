@@ -14,6 +14,7 @@ namespace wlepconstants {
 	static constexpr unsigned char header_prefix[header_prefix_size] = {0xC6, 0xD6};
 
 	static const std::string file_extension = ".wlep";
+	static const std::string jpg_extension = ".jpg";
 	static const std::wstring jpg_format = L"image/jpeg";
 
 	static const std::map<std::string, std::wstring> sup_file_extension_img_format_map = {

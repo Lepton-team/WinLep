@@ -6,7 +6,7 @@ wlep::InputParser::InputParser(int &argc, char **argv) {
 	}
 }
 
-const std::string &wlep::InputParser::getFirstCmdOption(const std::string &option) const {
+ std::string wlep::InputParser::getFirstCmdOption(const std::string &option) {
 	auto it = std::find(this->tokens.begin(), this->tokens.end(), option);
 	if (it != this->tokens.end() && ++it != this->tokens.end()) {
 		return *it;
@@ -14,7 +14,7 @@ const std::string &wlep::InputParser::getFirstCmdOption(const std::string &optio
 	return "";
 }
 
-const std::string &wlep::InputParser::getSecondCmdOption(const std::string &option) const {
+std::string wlep::InputParser::getSecondCmdOption(const std::string &option) {
 	auto it = std::find(this->tokens.begin(), this->tokens.end(), option);
 
 	if (it != this->tokens.end() && (it += 2) != this->tokens.end()) {

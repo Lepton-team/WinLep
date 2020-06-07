@@ -1,9 +1,7 @@
 #define TIME
 #include <iostream>
 
-#ifdef TIME
 #include <ctime>
-#endif // TIME
 
 #include "wlep_writer.h"
 #include "wlep_reader.h"
@@ -25,6 +23,9 @@
 	Therefore for function names prefer camelCase instead of PascalCase.
 */
 
+bool g_convert_to_jpg = false;
+bool g_delete_original = false;
+
 void printHelp();
 
 void printWinLepVersion() {
@@ -33,41 +34,46 @@ void printWinLepVersion() {
 		<< std::to_string(wlepconstants::version[2]) << '\n';
 }
 
-#ifdef TIME
 double diffClock(clock_t clock1, clock_t clock2) {
 	double diffticks = clock1 - (double)clock2;
 	double diffms = (diffticks) / (CLOCKS_PER_SEC / 1000);
 	return diffms;
 }
-#endif // TIME
 
-void convertAndWriteFiles(std::vector<std::string> &jpg_filenames, std::vector<std::string> &wlep_filenames) {
-	if (jpg_filenames.empty() || wlep_filenames.empty()) {
+size_t convertAndWriteFiles(std::vector<std::string> &in_filenames, std::vector<std::string> &out_filenames) {
+	if (in_filenames.empty() || out_filenames.empty()) {
 		wleputils::ExceptionUtil::printErrorMsg("Provided filenames are empty!");
-		return;
+		return 0;
 	}
 
 	// Both vectors should have the same size 
 	// since every input filename should have a corresponding output filename
-	if (jpg_filenames.size() != wlep_filenames.size()) {
+	if (in_filenames.size() != out_filenames.size()) {
 		wleputils::ExceptionUtil::printErrorMsg("Provided filename vectors doesn't have the same size!");
-		return;
+		return 0;
 	}
 
-	for (int i = 0; i < jpg_filenames.size(); i++) {
-		wlep::WLepWriter writer(wlep_filenames[i], jpg_filenames[i]);
-#ifdef TIME
+	size_t bytes_written = 0;
+	size_t total_bytes_written = 0;
+	for (int i = 0; i < in_filenames.size(); i++) {
 		clock_t start = std::clock();
-#endif // TIME
-		size_t bytes_written = writer.writeWinLepFile();
-#ifdef TIME
+
+		if (g_convert_to_jpg) {
+			wlep::WLepWriter writer(in_filenames[i], out_filenames[i], false);
+			wlep::WLepReader reader(in_filenames[i]);
+			std::vector<uChar> lepton_data = reader.validateFileAndReadLeptonData();
+			bytes_written = writer.writeJpgFile(lepton_data);
+		} else {
+			wlep::WLepWriter writer(out_filenames[i], in_filenames[i]);
+			bytes_written = writer.writeWinLepFile();
+		}
 		clock_t end = std::clock();
-		std::cerr << "[TIME] Writing  " << wlep_filenames[i]
-			<< " and converting it to lepton took " << diffClock(end, start) << "ms\n";
-#endif // TIME
-		std::cerr << "[INFO] Converted " << jpg_filenames[i] << " --> "
-			<< wlep_filenames[i] << " (" << bytes_written / 1000.0f << "kB)\n\n";
+		total_bytes_written += bytes_written;
+		std::cerr << "[INFO] Converted " << in_filenames[i] << " --> " << out_filenames[i]
+			<< " (" << bytes_written / 1000.0f << "kB) [" << diffClock(end, start) << "ms]\n";
 	}
+
+	return total_bytes_written;
 }
 
 std::string processInputFilename(char *filename) {
@@ -112,18 +118,22 @@ std::string processOutputFilename(char *filename) {
 }
 
 void setupFilenames(const std::string &output_dir, const std::string &input_dir,
-					std::vector<std::string> &in_filenames, std::vector<std::string> &out_filenames, bool recursive,
-					std::initializer_list<std::string> file_extensions) {
+					std::vector<std::string> &in_filenames, std::vector<std::string> &out_filenames, bool recursive) {
 
 	wlep::Directory *dir = new wlep::Directory(input_dir, recursive);
-	in_filenames = dir->getAllFiles(file_extensions);
+	if (g_convert_to_jpg) {
+		in_filenames = dir->getAllFiles({"wlep"});
+	} else {
+		in_filenames = dir->getAllFiles({"jpg", "jpeg"});
+	}
+	std::string out_extension = g_convert_to_jpg ? wlepconstants::jpg_extension : wlepconstants::file_extension;
 
 	for (std::string filename : in_filenames) {
 		auto idx = filename.find_first_of('\\');
 		filename.replace(0, idx + 1, output_dir);
 		out_filenames.push_back(
 			wleputils::FileUtil::getFileNameWithoutExtension(filename)
-			+ wlepconstants::file_extension);
+			+ out_extension);
 	}
 
 	delete dir;
@@ -154,110 +164,135 @@ int main(int argc, char **argv) {
 	//wlep::WLepWriter writer("test.wlep", "test\\hello.jpg", false);
 	//writer.writeJpgFile(lepton_data);
 
-	std::vector<std::string> jpg_filenames;
-	std::vector<std::string> wlep_filenames;
+	std::vector<std::string> in_filenames;
+	std::vector<std::string> out_filenames;
 
 	std::string output_dir = "";
+	std::string input_dir = "";
 	bool is_output_dir_provided = false;
-	bool convert_to_jpg = false;
-		
+
 	wlep::InputParser input(argc, argv);
 
-	if (input.cmdOptionExists("-help")) {
+	if (input.cmdOptionExists("-help") || input.cmdOptionExists("-h")) {
 		printHelp();
 		return 0;
 	}
-	
+
+	// Convert wlep to jpg
+	if (input.cmdOptionExists("-j")) {
+		g_convert_to_jpg = true;
+		g_delete_original = false;
+	}
+
+	// Convert wlep to jpg and delete original jpgs
+	if (input.cmdOptionExists("-J")) {
+		g_convert_to_jpg = true;
+		g_delete_original = true;
+	}
+
+	// Convert jpg to wlep
+	if (input.cmdOptionExists("-w")) {
+		g_convert_to_jpg = false;
+		g_delete_original = false;
+	}
+
+	// Convert jpg to wlep and delete original wleps
+	if (input.cmdOptionExists("-W")) {
+		g_convert_to_jpg = false;
+		g_delete_original = true;
+	}
+
 	if (input.cmdOptionExists("-d")) {
-		const std::string str = input.getSecondCmdOption("-d");
+		input_dir = input.getFirstCmdOption("-d");
+		if (input_dir.empty()) {
+			wleputils::ExceptionUtil::printErrorMsg("Enter a directory name!");
+			printHelp();
+			return -1;
+		}
+
+		output_dir = setupOutputDir(input.getSecondCmdOption("-d"));
+		setupFilenames(output_dir, input_dir, in_filenames, out_filenames, false);
 	}
 
 	if (input.cmdOptionExists("-D")) {
-
-	}
-
-	if (input.cmdOptionExists("-j")) {
-
-	}
-
-	if (input.cmdOptionExists("-w")) {
-
-	}
-
-
-
-	// TODO: Remove all break statements and find a way to chain multiple flags together
-	for (int i = 1; i < argc; i++) {
-		// Options
-		if (argv[i][0] == '-') {
-			if (strcmp(argv[i], "-help") == 0) {
-				printHelp();
-				return 0;
-				// Convert all .jpg/.jpeg images in the given directory
-			} else if (strcmp(argv[i], "-d") == 0) {
-				// No directory name
-				if (argc < i + 1) {
-					wleputils::ExceptionUtil::printErrorMsg("Enter a directory name!");
-					printHelp();
-					return -1;
-				}
-				// [output directory] is provided
-				if (argc > (i + 2)) {
-					output_dir = setupOutputDir(argv[i + 2]);
-					is_output_dir_provided = true;
-				}
-
-				setupFilenames(output_dir, argv[i + 1], jpg_filenames, wlep_filenames, false, {"jpg", "jpeg"});
-				// Skip the next 1 or 2 args
-				i += is_output_dir_provided ? 2 : 1;
-				continue;
-
-				// Convert all .jpg/.jpeg images in given directory and all of its subdirectories
-			} else if (strcmp(argv[i], "-D") == 0) {
-				// No directory name
-				if (argc < i + 1) {
-					wleputils::ExceptionUtil::printErrorMsg("Enter a directory name!");
-					printHelp();
-					return -1;
-				}
-				// [output directory] is provided
-				if (argc > (i + 2)) {
-					output_dir = setupOutputDir(argv[i + 2]);
-					is_output_dir_provided = true;
-				}
-				setupFilenames(output_dir, argv[i + 1], jpg_filenames, wlep_filenames, true, {"jpg", "jpeg"});
-				// Skip the next 1 or 2 args
-				i += is_output_dir_provided ? 2 : 1;
-				continue;
-			} else {
-				std::string msg = "Unknown option " + std::string(argv[i]);
-				wleputils::ExceptionUtil::printErrorMsg(msg);
-				printHelp();
-				return -1;
-			}
-			// Convert just one file
-		} else {
-			wleputils::FileUtil::getFileExtension(argv[i]);
-			jpg_filenames.push_back(processInputFilename(argv[i]));
-			if (argc > 2) {
-				wlep_filenames.push_back(processOutputFilename(argv[i + 1]));
-			} else {
-				wlep_filenames.push_back(wleputils::FileUtil::getFileNameWithoutExtension(jpg_filenames[0]) + wlepconstants::file_extension);
-			}
-			break;
+		input_dir = input.getFirstCmdOption("-D");
+		if (input_dir.empty()) {
+			wleputils::ExceptionUtil::printErrorMsg("Enter a directory name!");
+			printHelp();
+			return -1;
 		}
+
+		output_dir = setupOutputDir(input.getSecondCmdOption("-D"));
+		setupFilenames(output_dir, input_dir, in_filenames, out_filenames, true);
 	}
-#ifdef TIME
+	//for (int i = 1; i < argc; i++) {
+	//	// Options
+	//	if (argv[i][0] == '-') {
+	//		if (strcmp(argv[i], "-help") == 0) {
+	//			printHelp();
+	//			return 0;
+	//			// Convert all .jpg/.jpeg images in the given directory
+	//		} else if (strcmp(argv[i], "-d") == 0) {
+	//			// No directory name
+	//			if (argc < i + 1) {
+	//				wleputils::ExceptionUtil::printErrorMsg("Enter a directory name!");
+	//				printHelp();
+	//				return -1;
+	//			}
+	//			// [output directory] is provided
+	//			if (argc > (i + 2)) {
+	//				output_dir = setupOutputDir(argv[i + 2]);
+	//				is_output_dir_provided = true;
+	//			}
+
+	//			setupFilenames(output_dir, argv[i + 1], in_filenames, out_filenames, false);
+	//			// Skip the next 1 or 2 args
+	//			i += is_output_dir_provided ? 2 : 1;
+	//			continue;
+
+	//			// Convert all .jpg/.jpeg images in given directory and all of its subdirectories
+	//		} else if (strcmp(argv[i], "-D") == 0) {
+	//			// No directory name
+	//			if (argc < i + 1) {
+	//				wleputils::ExceptionUtil::printErrorMsg("Enter a directory name!");
+	//				printHelp();
+	//				return -1;
+	//			}
+	//			// [output directory] is provided
+	//			if (argc > (i + 2)) {
+	//				output_dir = setupOutputDir(argv[i + 2]);
+	//				is_output_dir_provided = true;
+	//			}
+	//			setupFilenames(output_dir, argv[i + 1], in_filenames, out_filenames, true);
+	//			// Skip the next 1 or 2 args
+	//			i += is_output_dir_provided ? 2 : 1;
+	//			continue;
+	//		} else {
+	//			std::string msg = "Unknown option " + std::string(argv[i]);
+	//			wleputils::ExceptionUtil::printErrorMsg(msg);
+	//			printHelp();
+	//			return -1;
+	//		}
+	//		// Convert just one file
+	//	} else {
+	//		in_filenames.push_back(processInputFilename(argv[i]));
+	//		if (argc > 2) {
+	//			out_filenames.push_back(processOutputFilename(argv[i + 1]));
+	//		} else {
+	//			out_filenames.push_back(wleputils::FileUtil::getFileNameWithoutExtension(in_filenames[0]) + wlepconstants::file_extension);
+	//		}
+	//		break;
+	//	}
+	//}
 	clock_t start = std::clock();
-#endif // TIME
 
-	convertAndWriteFiles(jpg_filenames, wlep_filenames);
+	size_t total_bytes_written = convertAndWriteFiles(in_filenames, out_filenames);
 
-#ifdef TIME
 	clock_t end = std::clock();
-	std::cerr << "[TIME] TOTAL: Writing and converting to lepton " <<
-		"all the images above took " << diffClock(end, start) << "ms\n";
-#endif // TIME
+	double total_time = diffClock(end, start);
+
+	std::cerr << "[TOTAL] Wrote and converted " << in_filenames.size() 
+		<< " images (" << total_bytes_written / 1000.0f << "kB) [" <<  total_time << "ms]\n";
 
 	return 0;
 }

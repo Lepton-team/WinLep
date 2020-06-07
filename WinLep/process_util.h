@@ -1,7 +1,5 @@
 #pragma once
 
-#define DEBUG 
-
 #include <Windows.h>
 #include <iostream>
 #include <tchar.h>
@@ -89,9 +87,6 @@ namespace wleputils {
 				) {
 				return false;
 			} else {
-#ifdef DEBUG
-				std::cout << "[OK] Successfully launched a child process" << std::endl;
-#endif // DEBUG
 				closeProcessAndThreadHandle(proc_info);
 				return true;
 			}
