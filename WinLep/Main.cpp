@@ -236,11 +236,15 @@ void printHelp() {
 		"\n\t\t\tAll original subdirectory names are preserved and created in the same structure\n";
 
 	// Examples
-	std::cerr << "\nExamples:\n\tWinLep test.jpg --> Converts test.jpg and saves it as test" << wlepconstants::file_extension
+	std::cerr << "Examples:\n\tWinLep test.jpg --> Converts test.jpg and saves it as test" << wlepconstants::file_extension
 		<< "\n\tWinLep test.jpg picture --> Converts test.jpg and saves it as picture" << wlepconstants::file_extension
 		<< "\n\tWinLep test.jpg out" << wlepconstants::file_extension
 		<< " --> Converts test.jpg and saves it as out" << wlepconstants::file_extension
 		<< "\n\tWinLep -d . --> Converts all the .jpg/.jpeg images in the current directory to " << wlepconstants::file_extension
-		<< "\n\tWinLep -d . wlep_images --> Converts all the .jpg/.jpeg images in the current directory" <<
-		"\n\t\t\t\tand saves them into wlep_images folder. \n";
+		<< "\n\tWinLep -d . wlep_images --> Converts all the .jpg/.jpeg images in the current directory"
+		<< "\n\t\t\tand saves them into wlep_images folder."
+		<< "\n\tWinLep -D . --> Converts all .jpg/.jpeg images in the current directory and all of its subdirectories"
+		<< "\n\t\t\tConverted files are created in the same subfolders as the original ones."
+		<< "\n\tWinLep -D . test --> Converts all .jpg/.jpeg images in the current folder and writes them in"
+		<< "\n\t\t\tthe subfolder 'test' creating the original subfolder structure.";
 }
