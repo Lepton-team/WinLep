@@ -116,10 +116,11 @@ void setupFilenames(const std::string &output_dir, const std::string &input_dir,
 	wlep::Directory *dir = new wlep::Directory(input_dir, recursive);
 	in_filenames = dir->getAllFiles({"jpg", "jpeg"});
 
-	for (std::string &filename : in_filenames) {
+	for (std::string filename : in_filenames) {
+		auto idx = filename.find_first_of('\\');
+		filename.replace(0, idx + 1, output_dir);
 		out_filenames.push_back(
-			output_dir
-			+ wleputils::FileUtil::getFileNameWithoutExtension(filename)
+			 wleputils::FileUtil::getFileNameWithoutExtension(filename)
 			+ wlepconstants::file_extension);
 	}
 
@@ -142,7 +143,7 @@ int main(int argc, char **argv) {
 	std::vector<std::string> out_filenames;
 
 	// TODO: Remove all break statements and find a way to chain multiple flags together
-
+	// TODO: Convert from wlep to jpeg. 
 	for (int i = 1; i < argc; i++) {
 		// Options
 		if (argv[i][0] == '-') {

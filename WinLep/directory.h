@@ -10,7 +10,7 @@ namespace wlep {
 		std::vector<std::string> files_;
 
 	public:
-		Directory(const std::string &dir_path, bool recursive = false, bool ommit_current_directory = true);
+		Directory(const std::string &dir_path, bool recursive = false, bool ommit_current_directory = false);
 		std::vector<std::string> getAllFiles(const std::initializer_list<std::string>file_extension);
 		std::vector<std::string> getAllFiles();
 	};

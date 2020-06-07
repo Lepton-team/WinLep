@@ -6,8 +6,8 @@
 namespace wlep {
 	class WLepWriter {
 	private:
-		uFstream file_;
-		std::string out_filename_;
+		uFstream wlep_file_;
+		std::string wlep_filename_;
 		std::string jpg_filename_;
 
 		size_t writeHeader();
@@ -15,9 +15,9 @@ namespace wlep {
 
 	public:
 		wlep::WLepHeader header;
-		WLepWriter(std::string &out_filename, wlep::WLepHeader &header);
-		WLepWriter(std::string &out_filename, IStream *thumbnail_data);
-		WLepWriter(std::string &out_filename, std::string &jpg_filename);
+		WLepWriter(std::string &wlep_filename, wlep::WLepHeader &header);
+		WLepWriter(std::string &wlep_filename, IStream *thumbnail_data);
+		WLepWriter(std::string &wlep_filename, std::string &jpg_filename);
 
 		~WLepWriter();
 

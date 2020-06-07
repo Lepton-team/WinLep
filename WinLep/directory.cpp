@@ -52,6 +52,11 @@ wlep::Directory::Directory(const std::string &dir_path, bool recursive, bool omm
 		wleputils::ExceptionUtil::throwAndPrintException
 			<std::invalid_argument>("Directory path is too long!");
 	}
+	// Always ommit the current directory from the filename path
+	if (dir_path == ".") {
+		ommit_current_directory = true;
+	}
+
 	this->dir_path_ = wleputils::StringUtil::toWideString(dir_path);
 	this->files_ = std::vector<std::string>();
 

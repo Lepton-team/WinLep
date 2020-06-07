@@ -21,8 +21,8 @@ namespace wleputils {
 		}
 		/*
 			Opens a file via stream in binary mode
-			If the path to the given filename doesn't exist, it'll be created
-			so the desired file can be created
+			If the path to the given filename doesn't exist and the file is open for writing
+			it'll be created so the desired file can be created
 		*/
 		static void openFileStream(uFstream &stream, std::string &filename, int mode) {
 			if (stream.is_open()) {
@@ -34,15 +34,18 @@ namespace wleputils {
 					<std::invalid_argument>("Error while opening file stream!", "Filename cannot be empty!");
 			}
 
-			std::vector<std::string> split = wleputils::StringUtil::split(filename, "\\");
-			std::string dir = "";
-			// -1 Because the last one is the filename
-			for (int i = 0; i < split.size() - 1; i++) {
-				dir += split[i] + "\\";
-				if (!directoryExists(dir)) {
-					if (!CreateDirectoryA(dir.c_str(), NULL)) {
-						std::string msg = "Error while creating folder " + dir;
-						wleputils::ExceptionUtil::throwAndPrintException<std::exception>(msg);
+			// Create file only when writing to it
+			if (mode & std::ios::out) { 
+				std::vector<std::string> split = wleputils::StringUtil::split(filename, "\\");
+				std::string dir = "";
+				// -1 Because the last one is the filename
+				for (int i = 0; i < split.size() - 1; i++) {
+					dir += split[i] + "\\";
+					if (!directoryExists(dir)) {
+						if (!CreateDirectoryA(dir.c_str(), NULL)) {
+							std::string msg = "Error while creating folder " + dir;
+							wleputils::ExceptionUtil::throwAndPrintException<std::exception>(msg);
+						}
 					}
 				}
 			}

@@ -14,34 +14,30 @@
 #endif // TIME
 
 
-wlep::WLepWriter::WLepWriter(std::string &out_filename, wlep::WLepHeader &header)
+wlep::WLepWriter::WLepWriter(std::string &wlep_filename, wlep::WLepHeader &header)
 	: header(header) {
-	if (out_filename.empty()) {
+	if (wlep_filename.empty()) {
 		wleputils::ExceptionUtil::throwAndPrintException<std::invalid_argument>("Filename cannot be empty!");
 	}
 
-	this->out_filename_ = out_filename;
-
-	wleputils::FileUtil::openFileStream(this->file_, this->out_filename_, std::ios::out);
+	this->wlep_filename_ = wlep_filename;
 }
 
-wlep::WLepWriter::WLepWriter(std::string &out_filename, IStream *thumbnail_data) {
-	if (out_filename.empty()) {
+wlep::WLepWriter::WLepWriter(std::string &wlep_filename, IStream *thumbnail_data) {
+	if (wlep_filename.empty()) {
 		wleputils::ExceptionUtil::throwAndPrintException<std::invalid_argument>("Filename cannot be empty!");
 	}
 
-	this->out_filename_ = out_filename;
+	this->wlep_filename_ = wlep_filename;
 	this->header = wlep::WLepHeader(thumbnail_data);
-
-	wleputils::FileUtil::openFileStream(this->file_, this->out_filename_, std::ios::out);
 }
 
-wlep::WLepWriter::WLepWriter(std::string &out_filename, std::string &jpg_filename) {
-	if (out_filename.empty() || jpg_filename.empty()) {
+wlep::WLepWriter::WLepWriter(std::string &wlep_filename, std::string &jpg_filename) {
+	if (wlep_filename.empty() || jpg_filename.empty()) {
 		wleputils::ExceptionUtil::throwAndPrintException<std::invalid_argument>("Filename cannot be empty!");
 	}
 
-	this->out_filename_ = out_filename;
+	this->wlep_filename_ = wlep_filename;
 	this->jpg_filename_ = jpg_filename;
 
 	wlep::WLepImage *image = new wlep::WLepImage(jpg_filename);
@@ -51,7 +47,6 @@ wlep::WLepWriter::WLepWriter(std::string &out_filename, std::string &jpg_filenam
 	thumbnail = image->getThumbnailAsStream();
 
 	this->header = wlep::WLepHeader(thumbnail);
-	wleputils::FileUtil::openFileStream(this->file_, this->out_filename_, std::ios::out);
 
 #ifdef SAVE_THUMBNAIL
 	Gdiplus::Image *img_from_stream = Gdiplus::Image::FromStream(thumbnail);
@@ -63,7 +58,7 @@ wlep::WLepWriter::WLepWriter(std::string &out_filename, std::string &jpg_filenam
 }
 
 wlep::WLepWriter::~WLepWriter() {
-	wleputils::FileUtil::closeFileStream(this->file_);
+	wleputils::FileUtil::closeFileStream(this->wlep_file_);
 }
 
 #ifdef TIME
@@ -79,10 +74,10 @@ size_t wlep::WLepWriter::writeHeader() {
 	const int items_to_write = 4;
 
 	size_t bytes_written_items[items_to_write] = {
-		wleputils::FileUtil::writeToFile<uChar>(this->file_, this->header.header_prefix),
-		wleputils::FileUtil::writeToFile<uChar>(this->file_, this->header.version),
-		wleputils::FileUtil::writeToFile<uChar>(this->file_, this->header.thumbnail_size_arr),
-		wleputils::FileUtil::writeToFile<uChar>(this->file_, this->header.thumbnail_data)
+		wleputils::FileUtil::writeToFile<uChar>(this->wlep_file_, this->header.header_prefix),
+		wleputils::FileUtil::writeToFile<uChar>(this->wlep_file_, this->header.version),
+		wleputils::FileUtil::writeToFile<uChar>(this->wlep_file_, this->header.thumbnail_size_arr),
+		wleputils::FileUtil::writeToFile<uChar>(this->wlep_file_, this->header.thumbnail_data)
 	};
 
 	for (int i = 0; i < items_to_write; i++) {
@@ -108,10 +103,12 @@ size_t wlep::WLepWriter::writeLeptonData() {
 	std::cerr << "[TIME] Converting to lepton took " << diffClock(end, start) << "ms\n";
 #endif // TIME
 
-	return wleputils::FileUtil::writeToFile<uChar>(this->file_, lepton_data);
+	return wleputils::FileUtil::writeToFile<uChar>(this->wlep_file_, lepton_data);
 }
 
 size_t wlep::WLepWriter::writeWinLepFile() {
+	wleputils::FileUtil::openFileStream(this->wlep_file_, this->wlep_filename_, std::ios::out);
+
 #ifdef TIME
 	clock_t start = std::clock();
 #endif // TIME
@@ -124,7 +121,7 @@ size_t wlep::WLepWriter::writeWinLepFile() {
 #endif // TIME
 
 	size_t lepton_data_written = writeLeptonData();
-	wleputils::FileUtil::closeFileStream(this->file_);
+	wleputils::FileUtil::closeFileStream(this->wlep_file_);
 
 	return header_written + lepton_data_written;
 }
