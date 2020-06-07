@@ -24,7 +24,7 @@ namespace wleputils {
 			If the path to the given filename doesn't exist and the file is open for writing
 			it'll be created so the desired file can be created
 		*/
-		static void openFileStream(uFstream &stream, std::string &filename, int mode) {
+		static void openFileStream(uFstream &stream, const std::string &filename, int mode) {
 			if (stream.is_open()) {
 				return;
 			}
@@ -70,7 +70,7 @@ namespace wleputils {
 		/*
 			Returns a file extension of a given file
 		*/
-		static inline std::string getFileExtension(std::string &filename) {
+		static inline std::string getFileExtension(const std::string &filename) {
 			std::string::size_type idx;
 			idx = filename.rfind('.');
 

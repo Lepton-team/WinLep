@@ -1,6 +1,5 @@
 #define TIME
 #include <iostream>
-#include <string>
 
 #ifdef TIME
 #include <ctime>
@@ -11,6 +10,7 @@
 #include "wlep_image.h"
 #include "file_util.h"
 #include "directory.h"
+#include "input_parser.h"
 
 /*
 	This code has been written according to Google's C++ style standards.
@@ -111,26 +111,34 @@ std::string processOutputFilename(char *filename) {
 	return str_filename;
 }
 
-void setupFilenames(const std::string &output_dir, const std::string &input_dir, 
-					std::vector<std::string> &in_filenames, std::vector<std::string> &out_filenames, bool recursive) {
+void setupFilenames(const std::string &output_dir, const std::string &input_dir,
+					std::vector<std::string> &in_filenames, std::vector<std::string> &out_filenames, bool recursive,
+					std::initializer_list<std::string> file_extensions) {
 
 	wlep::Directory *dir = new wlep::Directory(input_dir, recursive);
-	in_filenames = dir->getAllFiles({"jpg", "jpeg"});
+	in_filenames = dir->getAllFiles(file_extensions);
 
 	for (std::string filename : in_filenames) {
 		auto idx = filename.find_first_of('\\');
 		filename.replace(0, idx + 1, output_dir);
 		out_filenames.push_back(
-			 wleputils::FileUtil::getFileNameWithoutExtension(filename)
+			wleputils::FileUtil::getFileNameWithoutExtension(filename)
 			+ wlepconstants::file_extension);
 	}
 
 	delete dir;
 }
+std::string setupOutputDir(const std::string &dir) {
+	std::string output_dir = dir;
+	if (output_dir[output_dir.length() - 1] != '\\') {
+		output_dir += '\\';
+	}
+	return output_dir;
+}
 
 int main(int argc, char **argv) {
 #ifndef _WIN32
-	std::cerr << "[ERROR] winLep is implemented only for Windows OS! (Hence the name ...)\n";
+	std::cerr << "[ERROR] WinLep is implemented only for Windows OS! (Hence the name ...)\n";
 	return -1;
 #endif // !_WIN32
 
@@ -140,14 +148,43 @@ int main(int argc, char **argv) {
 	}
 	printWinLepVersion();
 
-	wlep::WLepReader reader("test.wlep");
-	std::vector<uChar> lepton_data = reader.validateFileAndReadLeptonData();
+	//wlep::WLepReader reader("test.wlep");
+	//std::vector<uChar> lepton_data = reader.validateFileAndReadLeptonData();
 
-	wlep::WLepWriter writer("test.wlep", "test\\hello.jpg", false);
-	writer.writeJpgFile(lepton_data);
+	//wlep::WLepWriter writer("test.wlep", "test\\hello.jpg", false);
+	//writer.writeJpgFile(lepton_data);
 
 	std::vector<std::string> jpg_filenames;
 	std::vector<std::string> wlep_filenames;
+
+	std::string output_dir = "";
+	bool is_output_dir_provided = false;
+	bool convert_to_jpg = false;
+		
+	wlep::InputParser input(argc, argv);
+
+	if (input.cmdOptionExists("-help")) {
+		printHelp();
+		return 0;
+	}
+	
+	if (input.cmdOptionExists("-d")) {
+		const std::string str = input.getSecondCmdOption("-d");
+	}
+
+	if (input.cmdOptionExists("-D")) {
+
+	}
+
+	if (input.cmdOptionExists("-j")) {
+
+	}
+
+	if (input.cmdOptionExists("-w")) {
+
+	}
+
+
 
 	// TODO: Remove all break statements and find a way to chain multiple flags together
 	for (int i = 1; i < argc; i++) {
@@ -164,16 +201,17 @@ int main(int argc, char **argv) {
 					printHelp();
 					return -1;
 				}
-				std::string output_dir = "";
 				// [output directory] is provided
 				if (argc > (i + 2)) {
-					output_dir = argv[i + 2];
-					if (output_dir[output_dir.length() - 1] != '\\') {
-						output_dir += '\\';
-					}
+					output_dir = setupOutputDir(argv[i + 2]);
+					is_output_dir_provided = true;
 				}
-				setupFilenames(output_dir, argv[i + 1], jpg_filenames, wlep_filenames, false);
-				break;
+
+				setupFilenames(output_dir, argv[i + 1], jpg_filenames, wlep_filenames, false, {"jpg", "jpeg"});
+				// Skip the next 1 or 2 args
+				i += is_output_dir_provided ? 2 : 1;
+				continue;
+
 				// Convert all .jpg/.jpeg images in given directory and all of its subdirectories
 			} else if (strcmp(argv[i], "-D") == 0) {
 				// No directory name
@@ -182,17 +220,15 @@ int main(int argc, char **argv) {
 					printHelp();
 					return -1;
 				}
-
-				std::string output_dir = "";
 				// [output directory] is provided
 				if (argc > (i + 2)) {
-					output_dir = argv[i + 2];
-					if (output_dir[output_dir.length() - 1] != '\\') {
-						output_dir += '\\';
-					}
+					output_dir = setupOutputDir(argv[i + 2]);
+					is_output_dir_provided = true;
 				}
-				setupFilenames(output_dir, argv[i + 1], jpg_filenames, wlep_filenames, true);
-				break;
+				setupFilenames(output_dir, argv[i + 1], jpg_filenames, wlep_filenames, true, {"jpg", "jpeg"});
+				// Skip the next 1 or 2 args
+				i += is_output_dir_provided ? 2 : 1;
+				continue;
 			} else {
 				std::string msg = "Unknown option " + std::string(argv[i]);
 				wleputils::ExceptionUtil::printErrorMsg(msg);
@@ -201,6 +237,7 @@ int main(int argc, char **argv) {
 			}
 			// Convert just one file
 		} else {
+			wleputils::FileUtil::getFileExtension(argv[i]);
 			jpg_filenames.push_back(processInputFilename(argv[i]));
 			if (argc > 2) {
 				wlep_filenames.push_back(processOutputFilename(argv[i + 1]));
@@ -218,7 +255,7 @@ int main(int argc, char **argv) {
 
 #ifdef TIME
 	clock_t end = std::clock();
-	std::cerr << "[TIME] TOTAL: Writing and converting to lepton " << 
+	std::cerr << "[TIME] TOTAL: Writing and converting to lepton " <<
 		"all the images above took " << diffClock(end, start) << "ms\n";
 #endif // TIME
 
@@ -247,7 +284,7 @@ void printHelp() {
 		"\n\t\t\tOriginal filenames will be used with the added .wlep extension." <<
 		"\n\t\t\tIf no [output_directory] is provided, the files will be outputted to [directory]" <<
 		"\n\t\t\tIf [output_directory] is provided and it doesn't exist, it's created" <<
-		"\n\t\t\talong with all other subdirectories." << 
+		"\n\t\t\talong with all other subdirectories." <<
 		"\n\t\t\tAll original subdirectory names are preserved and created in the same structure\n";
 
 	// Examples
