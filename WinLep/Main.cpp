@@ -283,10 +283,11 @@ void printHelp() {
 	// General info
 	std::cerr << "Make sure lepton.exe is in your PATH\n\n";
 	std::cerr << "Usage: WinLep <input_file> [output_file] [options]\n";
-	std::cerr << "If no output file is provided, input filename will be used, with the extension " << wlepconstants::file_extension << '\n';
+	std::cerr << "If no output file is provided, input filename will be used, with the extension "
+		<< wlepconstants::file_extension << '\n';
 	std::cerr << "If no output file extension is provided, or other than " << wlepconstants::file_extension
 		<< ", " << wlepconstants::file_extension << " will be used automatically.\n";
-	std::cerr << "\nOptions:\n\t-h -help - Show this menu\n";
+	std::cerr << "\nOptions:\n\t-h -help \t- Show this menu\n";
 
 	// Options
 	std::cerr << "\t-d <directory> [output_directory] - Converts all .jpg/.jpeg files in the given directory" <<
@@ -302,17 +303,18 @@ void printHelp() {
 		"\n\t\t\talong with all other subdirectories." <<
 		"\n\t\t\tAll original subdirectory names are preserved and created in the same structure\n";
 
-	std::cerr << "\t-j - Converts desired file/directory from " << wlepconstants::file_extension
+	std::cerr << "\t-j\t\t- Converts desired file/directory from " << wlepconstants::file_extension
 		<< " to " << wlepconstants::jpg_extension << '\n';
 
-	std::cerr << "\t-J - Converts desired file/directory from " << wlepconstants::file_extension
-		<< " to " << wlepconstants::jpg_extension << " and REMOVES all original " << wlepconstants::file_extension << " files\n";
+	std::cerr << "\t-J\t\t- Converts desired file/directory from " << wlepconstants::file_extension
+		<< " to " << wlepconstants::jpg_extension 
+		<< "\n\t\t\tand REMOVES all original " << wlepconstants::file_extension << " images\n";
 
-	std::cerr << "\t-w - Converts desired file/directory from " << wlepconstants::jpg_extension
-		<< " to " << wlepconstants::file_extension << " (default)\n";
+	std::cerr << "\t-w\t\t- (default) Converts desired file/directory from .jpg/.jpeg to "
+		<< wlepconstants::file_extension << '\n';
 
-	std::cerr << "\t-W - Converts desired file/directory from " << wlepconstants::jpg_extension
-		<< " to " << wlepconstants::file_extension << " and REMOVES all original " << wlepconstants::jpg_extension << " files\n";
+	std::cerr << "\t-W\t\t- Converts desired file/directory from .jpg/.jpeg to "<< wlepconstants::file_extension 
+		<< "\n\t\t\tand REMOVES all original .jpg/.jpeg images\n";
 
 	// Examples
 	std::cerr << "Examples:\n\tWinLep test.jpg --> Converts test.jpg and saves it as test" << wlepconstants::file_extension
