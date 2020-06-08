@@ -196,10 +196,13 @@ int main(int argc, char **argv) {
 		g_verbose = true;
 	}
 
+	if (input.cmdOptionExists("-r")) {
+		g_delete_original = true;
+	}
+
 	if (input.cmdOptionExists("-j")) {
 		// Convert wlep to jpg
 		g_convert_to_jpg = true;
-		g_delete_original = false;
 	} 
 
 	if (input.cmdOptionExists("-J")) {
@@ -211,7 +214,6 @@ int main(int argc, char **argv) {
 	if (input.cmdOptionExists("-w")) {
 		// Convert jpg to wlep
 		g_convert_to_jpg = false;
-		g_delete_original = false;
 	} 
 
 	if (input.cmdOptionExists("-W")) {
@@ -313,7 +315,7 @@ void printHelp() {
 	// Description
 	std::cerr << "\nDESCRIPTION";
 	std::cerr << "\n\tWinLep is a windows exclusive command line application used for converting "
-		<< "\n\tJPEG images to " << wlepconstants::file_extension << " format and vice versa."
+		<< "\n\tJPEG images to " << wlepconstants::file_extension << " format and vice versa. "
 		<< "The biggest benefit of " << wlepconstants::file_extension 
 		<< "\n\tformat is the file size. In average it's 22% smaller than original JPEG."
 		<< "\n\tThe compression/decompression is lossless and the original file is preserved bit-for-bit perfeclty";
@@ -339,19 +341,21 @@ void printHelp() {
 		"\n\t\talong with all other subdirectories." <<
 		"\n\t\tAll original subdirectory names are preserved and created in the same structure\n";
 
+	std::cerr << "\t-r\t- Removes original images\n";
 	std::cerr << "\t-j\t- Converts desired file/directory from " << wlepconstants::file_extension
 		<< " to " << wlepconstants::jpg_extension << '\n';
-
-	std::cerr << "\t-J\t- Converts desired file/directory from " << wlepconstants::file_extension
-		<< " to " << wlepconstants::jpg_extension
-		<< "\n\t\tand REMOVES all original " << wlepconstants::file_extension << " images\n";
 
 	std::cerr << "\t-w\t- (default) Converts desired file/directory from JPEG to "
 		<< wlepconstants::file_extension << '\n';
 
+	std::cerr << "\t-J\t- Converts desired file/directory from " << wlepconstants::file_extension
+		<< " to " << wlepconstants::jpg_extension
+		<< "\n\t\tand REMOVES all original " << wlepconstants::file_extension << " images. Same as -j -r\n";
+
 	std::cerr << "\t-W\t- Converts desired file/directory from " << wlepconstants::jpg_extension
 		<< " to " << wlepconstants::file_extension
-		<< "\n\t\tand REMOVES all original JPEG images\n";
+		<< "\n\t\tand REMOVES all original JPEG images. Same as -w -r\n";
+	
 	std::cerr << "\t-v -verbose\n\t\t- Outputs more information to the console";
 
 	// Examples
