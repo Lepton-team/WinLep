@@ -41,11 +41,6 @@ double diffClock(clock_t clock1, clock_t clock2) {
 }
 
 size_t convertAndWriteFiles(std::vector<std::string> &in_filenames, std::vector<std::string> &out_filenames) {
-	if (in_filenames.empty() || out_filenames.empty()) {
-		wleputils::ExceptionUtil::printErrorMsg("Provided filenames are empty!");
-		return 0;
-	}
-
 	// Both vectors should have the same size 
 	// since every input filename should have a corresponding output filename
 	if (in_filenames.size() != out_filenames.size()) {
@@ -285,6 +280,13 @@ int main(int argc, char **argv) {
 	//	}
 	//}
 	clock_t start = std::clock();
+
+	if (in_filenames.empty() || out_filenames.empty()) {
+		std::string msg = "No " + g_convert_to_jpg ? wlepconstants::file_extension : "JPEG";
+		msg += " images found in " + input_dir;
+		wleputils::ExceptionUtil::printErrorMsg(msg);
+		return -1;
+	}
 
 	size_t total_bytes_written = convertAndWriteFiles(in_filenames, out_filenames);
 
