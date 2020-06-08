@@ -97,8 +97,11 @@ namespace wleputils {
 		*/
 		static void writeToPipe(std::vector<BYTE> &data, HANDLE &child_write) {
 			DWORD written_bytes = 0;
-			WriteFile(child_write, data.data(), data.size(), &written_bytes, NULL);
-
+			if (!WriteFile(child_write, data.data(), data.size(), &written_bytes, NULL)) {
+				wleputils::ExceptionUtil::throwAndPrintException
+					<std::exception>("Error while writing data to pipe!", GetLastError());
+			}
+			
 			// Close the pipe handle so the child process stops reading. 
 			if (!CloseHandle(child_write)) {
 				wleputils::ExceptionUtil::throwAndPrintException

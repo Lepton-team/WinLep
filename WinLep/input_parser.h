@@ -5,13 +5,15 @@
 namespace wlep {
 	class InputParser {
 	private:
-		std::vector<std::string> tokens;
+		// Flags e.g. -f --help
+		std::vector<std::string> tokens_;
+		// Other stuff, e.g. filenames, directories etc.
+		std::vector<std::string> options_;
 
 	public:
 		InputParser(int &argc, char **argv);
-		std::string getFirstCmdOption(const std::string &option);
-		std::string getSecondCmdOption(const std::string &option);
 
+		std::string getOption(const int &index);
 		bool cmdOptionExists(const std::string &option) const;
 	};
 }

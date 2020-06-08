@@ -2,6 +2,7 @@
 #include <vector>
 #include <fstream>
 #include "exception_util.h"
+#include "wlep_constants.h"
 #include "string_util.h"
 #include <Windows.h>
 
@@ -68,12 +69,26 @@ namespace wleputils {
 			stream.unsetf(std::ios::skipws);
 		}
 
+		static bool isSupportedExtension(const std::string &extension) {
+			return wlepconstants::sup_file_extension_img_format_map.find(extension)
+				!= wlepconstants::sup_file_extension_img_format_map.end();
+		}
+
+		static std::vector<std::string> getSupportedExtensions() {
+			std::vector<std::string> keys;
+			for (auto it = wlepconstants::sup_file_extension_img_format_map.begin();
+				 it != wlepconstants::sup_file_extension_img_format_map.end();
+				 it++) {
+				keys.push_back(it->first);
+			}
+			return keys;
+		}
+
 		/*
 			Returns a file extension of a given file
 		*/
 		static inline std::string getFileExtension(const std::string &filename) {
-			std::string::size_type idx;
-			idx = filename.rfind('.');
+			const std::string::size_type idx = filename.rfind('.');
 
 			if (idx != std::string::npos) {
 				return filename.substr(idx + 1);
@@ -91,8 +106,7 @@ namespace wleputils {
 		}
 
 		static inline std::string getFileNameWithoutExtension(const std::string &filename) {
-			std::string::size_type idx;
-			idx = filename.find('.');
+			const std::string::size_type idx = filename.find('.');
 
 			if (idx != std::string::npos) {
 				return filename.substr(0, idx);

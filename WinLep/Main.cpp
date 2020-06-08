@@ -20,7 +20,7 @@
 	you have to define functions called begin and end (case-sensitive) for that class.
 	https://stackoverflow.com/questions/1776291/function-names-in-c-capitalize-or-not
 
-	Therefore for function names prefer camelCase instead of PascalCase.
+	Therefore for function names use camelCase over PascalCase.
 */
 
 bool g_convert_to_jpg = false;
@@ -72,7 +72,7 @@ size_t convertAndWriteFiles(std::vector<std::string> &in_filenames, std::vector<
 			<< " (" << bytes_written / 1000.0f << "kB) [" << diffClock(end, start) << "ms]\n";
 
 		if (g_delete_original) {
-			remove(in_filenames[i].c_str());
+			std::remove(in_filenames[i].c_str());
 			std::cerr << "[INFO] Removed " << in_filenames[i] << '\n';
 		}
 	}
@@ -80,56 +80,96 @@ size_t convertAndWriteFiles(std::vector<std::string> &in_filenames, std::vector<
 	return total_bytes_written;
 }
 
-std::string processInputFilename(char *filename) {
-	std::string result(filename);
-	wleputils::StringUtil::toLowerCase(result);
-
-	auto it = wlepconstants::sup_file_extension_img_format_map.begin();
-	bool is_supported_extension = false;
-
-	// Check if the input file ends with one of the supported file extensions
-	while (it != wlepconstants::sup_file_extension_img_format_map.end()) {
-		std::string sup_file_extension = "";
-		sup_file_extension += '.' + it->first;
-		is_supported_extension |= wleputils::StringUtil::endsWith(result, sup_file_extension);
-
-		it++;
+bool validateInputFilename(const std::string &filename) {
+	if (filename.empty()) {
+		return false;
 	}
 
-	if (!is_supported_extension) {
-		wleputils::ExceptionUtil::throwAndPrintException
-			<std::invalid_argument>("Invalid input file!", "Supported files are: .jpg/.jpeg");
+	std::string extension = wleputils::FileUtil::getFileExtension(filename);
+	wleputils::StringUtil::toLowerCase(extension);
+	// .wlep file, therefore convert it to jpg
+	if (extension == wlepconstants::file_extension.substr(1)) {
+		// Extension overrides option
+		g_convert_to_jpg = true;
+		return true;
 	}
 
-	return result;
+	// Otherwise check if the input file ends with one of the supported file extensions
+	if (wleputils::FileUtil::isSupportedExtension(extension)) {
+		g_convert_to_jpg = false;
+		return true;
+	}
+
+	return false;
 }
 
-std::string processOutputFilename(char *filename) {
-	std::string str_filename(filename);
-	std::string extension = wleputils::FileUtil::getFileExtension(str_filename);
+bool validateOutputFilename(std::string &out_filename, const std::string &in_filename) {
+	if (out_filename.empty()) {
+		out_filename = wleputils::FileUtil::getFileNameWithoutExtension(in_filename);
+		if (g_convert_to_jpg) {
+			out_filename.append(wlepconstants::jpg_extension);
+		} else {
+			out_filename.append(wlepconstants::file_extension);
+		}
+		return true;
+	}
+
+	// It's a directory
+	// Find the last '\' 
+	auto idx = out_filename.rfind("\\");
+	if (idx != std::string::npos) {
+		std::string substr = out_filename.substr(idx + 1);
+		// Validate the part after the last '\' which should be the filename
+		if (!validateOutputFilename(substr, in_filename)) {
+			return false;
+		}
+		out_filename += substr;
+		return true;
+	}
+
+	std::string extension = wleputils::FileUtil::getFileExtension(out_filename);
 
 	if (extension.empty()) {
-		return str_filename + wlepconstants::file_extension;
+		// Default is false
+		if (g_convert_to_jpg) {
+			out_filename.append(wlepconstants::jpg_extension);
+		} else {
+			out_filename.append(wlepconstants::file_extension);
+		}
+		// No ouput file extension is valid, since based on the options 
+		// we know which extension to append
+		return true;
 	}
-
+	// Extension is present
 	wleputils::StringUtil::toLowerCase(extension);
 
-	if (extension != wlepconstants::file_extension) {
-		return str_filename + wlepconstants::file_extension;
+	// .wlep file, convert to jpg
+	// Extension overrides option
+	if (extension == wlepconstants::file_extension.substr(1)) {
+		g_convert_to_jpg = true;
+		return true;
 	}
 
-	return str_filename;
+	// JPEG ?
+	if (wleputils::FileUtil::isSupportedExtension(extension)) {
+		g_convert_to_jpg = false;
+		return true;
+	}
+
+	return false;
 }
 
 void setupFilenames(const std::string &output_dir, const std::string &input_dir,
 					std::vector<std::string> &in_filenames, std::vector<std::string> &out_filenames, bool recursive) {
-
+	std::vector<std::string> file_extensions;
 	wlep::Directory *dir = new wlep::Directory(input_dir, recursive);
 	if (g_convert_to_jpg) {
-		in_filenames = dir->getAllFiles({"wlep"});
+		// Omit the '.'
+		file_extensions = {wlepconstants::file_extension.substr(1)};
 	} else {
-		in_filenames = dir->getAllFiles({"jpg", "jpeg"});
+		file_extensions = wleputils::FileUtil::getSupportedExtensions();
 	}
+	in_filenames = dir->getAllFiles(file_extensions);
 	std::string out_extension = g_convert_to_jpg ? wlepconstants::jpg_extension : wlepconstants::file_extension;
 
 	if (g_verbose) {
@@ -178,107 +218,97 @@ int main(int argc, char **argv) {
 
 	std::string output_dir = "";
 	std::string input_dir = "";
-	bool is_output_dir_provided = false;
 
 	wlep::InputParser input(argc, argv);
 
-	if (input.cmdOptionExists("-help") || input.cmdOptionExists("-h")) {
+	if (input.cmdOptionExists("-help") || input.cmdOptionExists("h")) {
 		printHelp();
 		return 0;
 	}
 
-	if (input.cmdOptionExists("-v") || input.cmdOptionExists("-verbose")) {
+	if (input.cmdOptionExists("-verbose") || input.cmdOptionExists("v")) {
 		g_verbose = true;
 	}
 
-	if (input.cmdOptionExists("-r")) {
+	if (input.cmdOptionExists("r")) {
 		g_delete_original = true;
 	}
 
-	if (input.cmdOptionExists("-j")) {
+	if (input.cmdOptionExists("j")) {
 		// Convert wlep to jpg
 		g_convert_to_jpg = true;
-	} 
+	}
 
-	if (input.cmdOptionExists("-J")) {
+	if (input.cmdOptionExists("J")) {
 		// Convert wlep to jpg and delete original jpgs
 		g_convert_to_jpg = true;
 		g_delete_original = true;
-	} 
+	}
 
-	if (input.cmdOptionExists("-w")) {
+	if (input.cmdOptionExists("w")) {
 		// Convert jpg to wlep
 		g_convert_to_jpg = false;
-	} 
+	}
 
-	if (input.cmdOptionExists("-W")) {
+	if (input.cmdOptionExists("W")) {
 		// Convert jpg to wlep and delete original wleps
 		g_convert_to_jpg = false;
 		g_delete_original = true;
-	} 
+	}
 
-	if (input.cmdOptionExists("-d")) {
+	if (input.cmdOptionExists("d")) {
 		// Convert whole directory
-		input_dir = input.getFirstCmdOption("-d");
+		input_dir = input.getOption(0); // 0 - index ...
 		if (input_dir.empty()) {
 			wleputils::ExceptionUtil::printErrorMsg("Enter a directory name!");
 			printHelp();
 			return -1;
 		}
 
-		output_dir = setupOutputDir(input.getSecondCmdOption("-d"));
+		output_dir = setupOutputDir(input.getOption(1));
 		setupFilenames(output_dir, input_dir, in_filenames, out_filenames, false);
-	} else if (input.cmdOptionExists("-D")) {
+	} else if (input.cmdOptionExists("D")) {
 		// Convert whole directory and all of it's subdirectories
-		input_dir = input.getFirstCmdOption("-D");
+		input_dir = input.getOption(0);
 		if (input_dir.empty()) {
 			wleputils::ExceptionUtil::printErrorMsg("Enter a directory name!");
 			printHelp();
 			return -1;
 		}
 
-		output_dir = setupOutputDir(input.getSecondCmdOption("-D"));
+		output_dir = setupOutputDir(input.getOption(1));
 		setupFilenames(output_dir, input_dir, in_filenames, out_filenames, true);
+		// It must be a single file, right ?
+	} else if (!input.cmdOptionExists("d") || !input.cmdOptionExists("D")) {
+		const std::string in_filename = input.getOption(0);
+		if (!validateInputFilename(in_filename)) {
+			const std::string msg2 = "Supported file extensions are " + wlepconstants::sup_extensions;
+			const std::string msg = "Unsupported input file " + in_filename + " !";
+			wleputils::ExceptionUtil::printErrorMsg(msg);
+			wleputils::ExceptionUtil::printErrorMsg(msg2);
+			printHelp();
+			return -1;
+		}
+
+		// We can append an extension to output filename based on the options
+		// or create the filename if it's empty, based on the input filename
+		std::string out_filename = input.getOption(1);
+		if (!validateOutputFilename(out_filename, in_filename)) {
+			const std::string msg = "Supported file extensions are " + wlepconstants::sup_extensions;
+			wleputils::ExceptionUtil::printErrorMsg("Unsupported input file!");
+			wleputils::ExceptionUtil::printErrorMsg(msg);
+			printHelp();
+			return -1;
+		}
+
+		in_filenames.push_back(input.getOption(0));
+		out_filenames.push_back(out_filename);
 	} else {
-		wleputils::ExceptionUtil::printErrorMsg("Unknown option");
+		wleputils::ExceptionUtil::printErrorMsg("Unknown option!");
 		printHelp();
 		return -1;
 	}
 
-	//			// Convert all .jpg/.jpeg images in given directory and all of its subdirectories
-	//		} else if (strcmp(argv[i], "-D") == 0) {
-	//			// No directory name
-	//			if (argc < i + 1) {
-	//				wleputils::ExceptionUtil::printErrorMsg("Enter a directory name!");
-	//				printHelp();
-	//				return -1;
-	//			}
-	//			// [output directory] is provided
-	//			if (argc > (i + 2)) {
-	//				output_dir = setupOutputDir(argv[i + 2]);
-	//				is_output_dir_provided = true;
-	//			}
-	//			setupFilenames(output_dir, argv[i + 1], in_filenames, out_filenames, true);
-	//			// Skip the next 1 or 2 args
-	//			i += is_output_dir_provided ? 2 : 1;
-	//			continue;
-	//		} else {
-	//			std::string msg = "Unknown option " + std::string(argv[i]);
-	//			wleputils::ExceptionUtil::printErrorMsg(msg);
-	//			printHelp();
-	//			return -1;
-	//		}
-	//		// Convert just one file
-	//	} else {
-	//		in_filenames.push_back(processInputFilename(argv[i]));
-	//		if (argc > 2) {
-	//			out_filenames.push_back(processOutputFilename(argv[i + 1]));
-	//		} else {
-	//			out_filenames.push_back(wleputils::FileUtil::getFileNameWithoutExtension(in_filenames[0]) + wlepconstants::file_extension);
-	//		}
-	//		break;
-	//	}
-	//}
 	clock_t start = std::clock();
 
 	if (in_filenames.empty() || out_filenames.empty()) {
@@ -305,6 +335,7 @@ int main(int argc, char **argv) {
 
 void printHelp() {
 	// TODO: Put the help menu into a text file and just print it.
+	// I know it's messy, but this way if we change the file extension, it changes everywhere.
 	printWinLepVersion();
 	// General info
 	std::cerr << "Make sure lepton.exe is in your PATH\n";
@@ -318,14 +349,10 @@ void printHelp() {
 	std::cerr << "\nDESCRIPTION";
 	std::cerr << "\n\tWinLep is a windows exclusive command line application used for converting "
 		<< "\n\tJPEG images to " << wlepconstants::file_extension << " format and vice versa. "
-		<< "The biggest benefit of " << wlepconstants::file_extension 
+		<< "The biggest benefit of " << wlepconstants::file_extension
 		<< "\n\tformat is the file size. In average it's 22% smaller than original JPEG."
 		<< "\n\tThe compression/decompression is lossless and the original file is preserved bit-for-bit perfeclty";
-	//std::cerr << "If no output file is provided, input filename will be used, with the extension "
-	//	<< wlepconstants::file_extension << '\n';
-	//std::cerr << "If no output file extension is provided, or other than " << wlepconstants::file_extension
-	//	<< ", " << wlepconstants::file_extension << " will be used automatically.\n";
-	std::cerr << "\nOPTIONS\n\t-h -help \n\t\t- Show this menu\n";
+	std::cerr << "\nOPTIONS\n\t-h --help \n\t\t- Show this menu\n";
 
 	// Options
 	std::cerr << "\t-d <directory> [output_directory]" <<
@@ -357,24 +384,27 @@ void printHelp() {
 	std::cerr << "\t-W\t- Converts desired file/directory from " << wlepconstants::jpg_extension
 		<< " to " << wlepconstants::file_extension
 		<< "\n\t\tand REMOVES all original JPEG images. Same as -w -r\n";
-	
-	std::cerr << "\t-v -verbose\n\t\t- Outputs more information to the console";
+
+	std::cerr << "\t-v --verbose\n\t\t- Outputs more information to the console";
 
 	// Examples
 	std::cerr << "\nEXAMPLES\n\tWinLep test.jpg --> Converts test.jpg and saves it as test" << wlepconstants::file_extension
-		<< "\n\tWinLep test.jpg picture --> Converts test.jpg and saves it as picture" << wlepconstants::file_extension
-		<< "\n\tWinLep -w test.jpg out" << wlepconstants::file_extension
-		<< " --> Converts test.jpg and saves it as out" << wlepconstants::file_extension
-		<< "\n\tWinLep -j -d . --> Converts all the " << wlepconstants::file_extension
+		<< "\n\tWinLep test" << wlepconstants::file_extension <<" picture --> Converts test" 
+		<< wlepconstants::file_extension << " and saves it as picture" << wlepconstants::jpg_extension;
+	std::cerr << "\n\tWinLep test" << wlepconstants::file_extension << " pictures\\ --> Converts test"
+		<< wlepconstants::file_extension << " and saves it into pictures\\test" << wlepconstants::jpg_extension;
+	std::cerr << "\n\tWinLep -w test.jpg out" << wlepconstants::file_extension
+		<< " --> Converts test.jpg and saves it as out" << wlepconstants::file_extension;
+	std::cerr << "\n\tWinLep -jd . --> Converts all the " << wlepconstants::file_extension
 		<< " images in the current directory to " << wlepconstants::jpg_extension
 
 		<< "\n\tWinLep -d . wlep_images --> Converts all the JPEG images in the current directory"
-		<< "\n\t\t\tand saves them into wlep_images folder."
-		<< "\n\tWinLep -w -D . --> Converts all JPEG images in the current directory and all of its subdirectories"
-		<< "\n\t\t\tConverted files are created in the same subfolders as the original ones."
-		<< "\n\tWinLep -j -D . pics --> Converts all " << wlepconstants::file_extension << " images in the current folder to "
-		<< wlepconstants::jpg_extension << " and writes them in"
-		<< "\n\t\t\tthe subfolder 'pics' creating the original subfolder structure.";
+		<< "\n\t\t\t and saves them into wlep_images folder."
+		<< "\n\tWinLep -wD . --> Converts all JPEG images in the current directory and all of its subdirectories"
+		<< "\n\t\t\t Converted files are created in the same subfolders as the original ones."
+		<< "\n\tWinLep -Dj . pics -v --> Converts all " << wlepconstants::file_extension << " images in the current folder to "
+		<< wlepconstants::jpg_extension << " with additinal output"
+		<< "\n\t\t\t and writes them in the subfolder 'pics' creating the original subfolder structure.";
 
 	// Bugs
 	std::cerr << "\nBUGS";

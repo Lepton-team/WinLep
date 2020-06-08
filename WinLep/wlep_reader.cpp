@@ -12,7 +12,7 @@ void wlep::WLepReader::readAndValidateHeader(bool read_thumbnail) {
 
 	for (int i = 0; i < wlepconstants::header_prefix_size; i++) {
 		if (this->header.header_prefix[i] != wlepconstants::header_prefix[i]) {
-			std::string msg = this->filename_ + "isn't a wlep file!";
+			std::string msg = this->filename_ + " isn't a wlep file!";
 			wleputils::ExceptionUtil::throwAndPrintException
 				<std::exception>("Invalid file format!", msg.c_str());
 		}

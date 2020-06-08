@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <initializer_list>
 
+// TODO: Remake 
 void findFiles(const std::wstring &directory, std::vector<std::wstring> &files, bool recursive) {
 	std::wstring tmp = directory + L"\\*";
 	WIN32_FIND_DATAW file;
@@ -77,7 +78,7 @@ wlep::Directory::Directory(const std::string &dir_path, bool recursive, bool omm
 	}
 }
 
-std::vector<std::string> wlep::Directory::getAllFiles(std::initializer_list<std::string> file_extensions) {
+std::vector<std::string> wlep::Directory::getAllFiles(std::vector<std::string> &file_extensions) {
 	std::vector<std::string> result(this->files_.size());
 
 	// Copy all the files that end with the given file extensions
