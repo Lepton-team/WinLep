@@ -67,10 +67,16 @@ size_t convertAndWriteFiles(std::vector<std::string> &in_filenames, std::vector<
 			wlep::WLepWriter writer(out_filenames[i], in_filenames[i]);
 			bytes_written = writer.writeWinLepFile();
 		}
+
 		clock_t end = std::clock();
 		total_bytes_written += bytes_written;
 		std::cerr << "[INFO] Converted " << in_filenames[i] << " --> " << out_filenames[i]
 			<< " (" << bytes_written / 1000.0f << "kB) [" << diffClock(end, start) << "ms]\n";
+
+		if (g_delete_original) {
+			remove(in_filenames[i].c_str());
+			std::cerr << "[INFO] Removed " << in_filenames[i] << '\n';
+		}
 	}
 
 	return total_bytes_written;
@@ -156,7 +162,7 @@ int main(int argc, char **argv) {
 		printHelp();
 		return 0;
 	}
-   	printWinLepVersion();
+	printWinLepVersion();
 
 	std::vector<std::string> in_filenames;
 	std::vector<std::string> out_filenames;
@@ -261,8 +267,12 @@ int main(int argc, char **argv) {
 	clock_t end = std::clock();
 	double total_time = diffClock(end, start);
 
-	std::cerr << "[TOTAL] Wrote and converted " << in_filenames.size() 
-		<< " images (" << total_bytes_written / 1000.0f << "kB) [" <<  total_time << "ms]\n";
+	std::string msg = g_delete_original
+		? "[TOTAL] Wrote, converted and removed "
+		: "[TOTAL] Wrote and converted ";
+
+	std::cerr << msg << in_filenames.size()
+		<< " images (" << total_bytes_written / 1000.0f << "kB) [" << total_time << "ms]\n";
 
 	return 0;
 }
@@ -309,14 +319,14 @@ void printHelp() {
 		<< "\n\tWinLep test.jpg picture --> Converts test.jpg and saves it as picture" << wlepconstants::file_extension
 		<< "\n\tWinLep -w test.jpg out" << wlepconstants::file_extension
 		<< " --> Converts test.jpg and saves it as out" << wlepconstants::file_extension
-		<< "\n\tWinLep -j -d . --> Converts all the " << wlepconstants::file_extension 
+		<< "\n\tWinLep -j -d . --> Converts all the " << wlepconstants::file_extension
 		<< " images in the current directory to " << wlepconstants::jpg_extension
 
 		<< "\n\tWinLep -d . wlep_images --> Converts all the .jpg/.jpeg images in the current directory"
 		<< "\n\t\t\tand saves them into wlep_images folder."
 		<< "\n\tWinLep -w -D . --> Converts all .jpg/.jpeg images in the current directory and all of its subdirectories"
 		<< "\n\t\t\tConverted files are created in the same subfolders as the original ones."
-		<< "\n\tWinLep -j -D . pics --> Converts all "<< wlepconstants::file_extension << " images in the current folder to "
+		<< "\n\tWinLep -j -D . pics --> Converts all " << wlepconstants::file_extension << " images in the current folder to "
 		<< wlepconstants::jpg_extension << " and writes them in"
 		<< "\n\t\t\tthe subfolder 'pics' creating the original subfolder structure.";
 }
