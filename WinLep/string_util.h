@@ -53,5 +53,22 @@ namespace wleputils {
 			return tokens;
 		}
 
+		/*
+			Splits a wide string to vector of substrings using the given delimiter
+		*/
+		static std::vector<std::wstring> split(const std::wstring &str, const std::wstring &delim) {
+			std::vector<std::wstring> tokens;
+			size_t prev = 0, pos = 0;
+			do {
+				pos = str.find(delim, prev);
+				if (pos == std::wstring::npos) pos = str.length();
+				std::wstring token = str.substr(prev, pos - prev);
+				if (!token.empty()) tokens.push_back(token);
+				prev = pos + delim.length();
+			} while (pos < str.length() && prev < str.length());
+
+			return tokens;
+		}
+
 	};
 }

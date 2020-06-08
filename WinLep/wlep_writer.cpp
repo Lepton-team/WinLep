@@ -81,8 +81,8 @@ size_t wlep::WLepWriter::writeLeptonData() {
 #ifdef TIME
 	clock_t start = std::clock();
 #endif // TIME
-
-	std::vector<uChar> lepton_data = converter.convertJpgToLepton(this->jpg_filename_);
+	std::wstring wide_filename = wleputils::StringUtil::toWideString(this->jpg_filename_);
+	std::vector<uChar> lepton_data = converter.convertJpgToLepton(wide_filename);
 
 #ifdef TIME
 	clock_t end = std::clock();

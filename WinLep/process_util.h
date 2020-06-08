@@ -65,8 +65,8 @@ namespace wleputils {
 			start_info.dwFlags |= STARTF_USESTDHANDLES;
 
 			// Prepare CreateProcess args
-			std::wstring exe = wleputils::StringUtil::toWideString(executable);; // Make room for characters
-			std::wstring w_args = wleputils::StringUtil::toWideString(args);; // Make room for character
+			std::wstring exe = wleputils::StringUtil::toWideString(executable);
+			std::wstring w_args = wleputils::StringUtil::toWideString(args);
 			std::wstring input = exe + L" " + w_args;
 			wchar_t *args_concat = const_cast<wchar_t *>(input.c_str());
 			const wchar_t *app_exe = exe.c_str();

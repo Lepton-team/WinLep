@@ -1,7 +1,7 @@
 #include "lepton_converter.h"
 #include "process_util.h"
 
-std::vector<BYTE> wlep::LeptonConverter::convertJpgToLepton(const std::string &jpg_filename) {
+std::vector<BYTE> wlep::LeptonConverter::convertJpgToLepton(const std::wstring &jpg_filename) {
 	const std::string lepton_exe = "lepton.exe";
 	const std::string lepton_args = "-skiproundtrip -";
 	std::vector<BYTE> lepton_data = std::vector<BYTE>();
@@ -17,7 +17,7 @@ std::vector<BYTE> wlep::LeptonConverter::convertJpgToLepton(const std::string &j
 	sec_attr.bInheritHandle = true;
 	sec_attr.lpSecurityDescriptor = NULL;
 
-	HANDLE input_file_handle = CreateFileA(jpg_filename.c_str(),
+	HANDLE input_file_handle = CreateFileW(jpg_filename.c_str(),
 										   GENERIC_READ,
 										   0,
 										   NULL,
@@ -27,7 +27,8 @@ std::vector<BYTE> wlep::LeptonConverter::convertJpgToLepton(const std::string &j
 	);
 
 	if (input_file_handle == INVALID_HANDLE_VALUE) {
-		std::string msg = "Error while opening file " + jpg_filename + " !";
+		std::wstring w_msg = L"Error while opening file " + jpg_filename + L" !";
+		std::string msg = wleputils::StringUtil::wideStringToString(w_msg);
 		wleputils::ExceptionUtil::throwAndPrintException
 			<std::exception>(msg);
 	}
@@ -60,7 +61,6 @@ std::vector<BYTE> wlep::LeptonConverter::convertJpgToLepton(const std::string &j
 		wleputils::ExceptionUtil::throwAndPrintException
 			<std::exception>("Error while closing 'out' pipe's reading end!", GetLastError());
 	}
-
 
 	return lepton_data;
 }

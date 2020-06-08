@@ -36,14 +36,15 @@ namespace wleputils {
 
 			// Create file only when writing to it
 			if (mode & std::ios::out) { 
-				std::vector<std::string> split = wleputils::StringUtil::split(filename, "\\");
-				std::string dir = "";
+				std::wstring wide_filename = wleputils::StringUtil::toWideString(filename);
+				std::vector<std::wstring> split = wleputils::StringUtil::split(wide_filename, L"\\");
+				std::wstring dir = L"";
 				// -1 Because the last one is the filename
 				for (int i = 0; i < split.size() - 1; i++) {
-					dir += split[i] + "\\";
-					if (!directoryExists(dir)) {
-						if (!CreateDirectoryA(dir.c_str(), NULL)) {
-							std::string msg = "Error while creating folder " + dir;
+					dir += split[i] + L"\\";
+					if (!directoryExistsW(dir)) {
+						if (!CreateDirectoryW(dir.c_str(), NULL)) {
+							std::string msg = "Error while creating folder " + wleputils::StringUtil::wideStringToString(dir);
 							wleputils::ExceptionUtil::throwAndPrintException<std::exception>(msg);
 						}
 					}
@@ -84,8 +85,8 @@ namespace wleputils {
 		/*
 			Checks if a given directory exists
 		*/
-		static inline bool directoryExists(const std::string &path) {
-			DWORD attr = GetFileAttributesA(path.c_str());
+		static inline bool directoryExistsW(const std::wstring &path) {
+			DWORD attr = GetFileAttributesW(path.c_str());
 			return (attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_DIRECTORY));
 		}
 

@@ -50,7 +50,7 @@ namespace wleputils {
 		}
 
 		template<typename EX>
-		static void throwAndPrintException(std::string &msg, std::string &desc) {
+		static void throwAndPrintException(const std::string &msg, const std::string &desc) {
 			std::cerr << createErrorMsg(msg) << createErrorMsg(desc);
 			std::string ex_msg = msg + '\n' + desc;
 
@@ -69,11 +69,11 @@ namespace wleputils {
 			std::cerr << createErrorMsg(msg, error_code);
 		}
 
-		static inline std::string createErrorMsg(std::string &msg) {
+		static inline std::string createErrorMsg(const std::string &msg) {
 			return "[ERROR] " + msg + '\n';
 		}
 
-		static inline void printErrorMsg(std::string &msg) {
+		static inline void printErrorMsg(const std::string &msg) {
 			std::cerr << createErrorMsg(msg);
 		}
 
