@@ -17,7 +17,7 @@ namespace wlepconstants {
 	static const std::string jpg_extension = ".jpg";
 	static const std::wstring jpg_format = L"image/jpeg";
 
-	static const std::string sup_extensions = ".jpg, .jpeg, .jpe, .jif, .jfif, .jfi";
+	static const std::string sup_extensions = ".jpg, .jpeg, .jpe, .jif, .jfif, .jfi, " + file_extension;
 
 	static const std::map<std::string, std::wstring> sup_file_extension_img_format_map = {
 		{"jpeg", jpg_format},

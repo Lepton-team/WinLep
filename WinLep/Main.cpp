@@ -282,11 +282,10 @@ int main(int argc, char **argv) {
 	} else if (!input.cmdOptionExists("d") || !input.cmdOptionExists("D")) {
 		const std::string in_filename = input.getOption(0);
 		if (!validateInputFilename(in_filename)) {
-			const std::string msg2 = "Supported file extensions are " + wlepconstants::sup_extensions;
+			const std::string desc = "Supported file extensions are " + wlepconstants::sup_extensions;
 			const std::string msg = "Unsupported input file " + in_filename + " !";
-			wleputils::ExceptionUtil::printErrorMsg(msg);
-			wleputils::ExceptionUtil::printErrorMsg(msg2);
-			printHelp();
+			wleputils::ExceptionUtil::throwAndPrintException
+				<std::invalid_argument>(msg, desc);
 			return -1;
 		}
 
@@ -294,10 +293,10 @@ int main(int argc, char **argv) {
 		// or create the filename if it's empty, based on the input filename
 		std::string out_filename = input.getOption(1);
 		if (!validateOutputFilename(out_filename, in_filename)) {
-			const std::string msg = "Supported file extensions are " + wlepconstants::sup_extensions;
-			wleputils::ExceptionUtil::printErrorMsg("Unsupported input file!");
-			wleputils::ExceptionUtil::printErrorMsg(msg);
-			printHelp();
+			const std::string desc = "Supported file extensions are " + wlepconstants::sup_extensions;
+			const std::string msg = "Unsupported output file " + out_filename + " !";
+			wleputils::ExceptionUtil::throwAndPrintException
+				<std::invalid_argument>(msg, desc);
 			return -1;
 		}
 
@@ -338,7 +337,8 @@ void printHelp() {
 	// I know it's messy, but this way if we change the file extension, it changes everywhere.
 	printWinLepVersion();
 	// General info
-	std::cerr << "Make sure lepton.exe is in your PATH\n";
+	std::cerr << "Supported file extensions are: " << wlepconstants::sup_extensions;
+	std::cerr << "\nMake sure lepton.exe is in your PATH\n";
 	// Name
 	std::cerr << "\nNAME" << "\n\tWinLep - Convert JPEG images to .wlep and vice versa";
 	// Synopsis

@@ -69,7 +69,7 @@ namespace wleputils {
 			stream.unsetf(std::ios::skipws);
 		}
 
-		static bool isSupportedExtension(const std::string &extension) {
+		static inline bool isSupportedExtension(const std::string &extension) {
 			return wlepconstants::sup_file_extension_img_format_map.find(extension)
 				!= wlepconstants::sup_file_extension_img_format_map.end();
 		}
