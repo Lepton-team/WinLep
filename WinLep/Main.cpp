@@ -118,23 +118,42 @@ bool validateOutputFilename(std::string &out_filename, const std::string &in_fil
 	// Find the last '\' 
 	auto idx = out_filename.rfind("\\");
 	if (idx != std::string::npos) {
-		std::string substr = out_filename.substr(idx + 1);
+		std::string filename = out_filename.substr(idx + 1);
+		std::string original_filename(filename);
 		// Validate the part after the last '\' which should be the filename
-		if (!validateOutputFilename(substr, in_filename)) {
+		if (!validateOutputFilename(filename, in_filename)) {
 			return false;
 		}
-		out_filename += substr;
+		if (original_filename != filename) {
+			auto index = out_filename.find(original_filename);
+			out_filename.replace(index, index + filename.length(), filename);
+		}
 		return true;
 	}
 
 	std::string extension = wleputils::FileUtil::getFileExtension(out_filename);
 
 	if (extension.empty()) {
-		// Default is false
-		if (g_convert_to_jpg) {
-			out_filename.append(wlepconstants::jpg_extension);
+		std::string in_extension = wleputils::FileUtil::getFileExtension(in_filename);
+		// Input file doesn't have an extension
+		// Then the user must've used a option, or just guess the default.
+		if (in_extension.empty()) {
+			// Default is false
+			if (g_convert_to_jpg) {
+				out_filename.append(wlepconstants::jpg_extension);
+			} else {
+				out_filename.append(wlepconstants::file_extension);
+			}
 		} else {
-			out_filename.append(wlepconstants::file_extension);
+			if (in_extension == wlepconstants::file_extension) {
+				g_convert_to_jpg = true;
+				out_filename.append(wlepconstants::jpg_extension);
+			} else if (wleputils::FileUtil::isSupportedExtension(in_extension)) {
+				g_convert_to_jpg = false;
+				out_filename.append(wlepconstants::file_extension);
+			} else {
+				return false;
+			}
 		}
 		// No ouput file extension is valid, since based on the options 
 		// we know which extension to append
@@ -143,16 +162,16 @@ bool validateOutputFilename(std::string &out_filename, const std::string &in_fil
 	// Extension is present
 	wleputils::StringUtil::toLowerCase(extension);
 
-	// .wlep file, convert to jpg
+	// Output is a .wlep file
 	// Extension overrides option
 	if (extension == wlepconstants::file_extension.substr(1)) {
-		g_convert_to_jpg = true;
+		g_convert_to_jpg = false;
 		return true;
 	}
 
 	// JPEG ?
 	if (wleputils::FileUtil::isSupportedExtension(extension)) {
-		g_convert_to_jpg = false;
+		g_convert_to_jpg = true;
 		return true;
 	}
 
@@ -389,7 +408,7 @@ void printHelp() {
 
 	// Examples
 	std::cerr << "\nEXAMPLES\n\tWinLep test.jpg --> Converts test.jpg and saves it as test" << wlepconstants::file_extension
-		<< "\n\tWinLep test" << wlepconstants::file_extension <<" picture --> Converts test" 
+		<< "\n\tWinLep test" << wlepconstants::file_extension << " picture --> Converts test"
 		<< wlepconstants::file_extension << " and saves it as picture" << wlepconstants::jpg_extension;
 	std::cerr << "\n\tWinLep test" << wlepconstants::file_extension << " pictures\\ --> Converts test"
 		<< wlepconstants::file_extension << " and saves it into pictures\\test" << wlepconstants::jpg_extension;
