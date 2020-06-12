@@ -5,6 +5,8 @@ Is a **Win**dows only CLI application/tool and a image format based on the [**Le
 WinLep was created to make use of the awesome Lepton tool/format for a Windows user which at least knows how to use the CMD, rewarding him with lots of free disk space.
 (GUI version probably coming soon)
 
+When you install WinLep you technically install more free disk space. 
+
 WinLep supports the conversion of all of the following file extensions:
 - `.jpg, .jpeg, .jpe, .jif, .jfif, .jfi`
 
@@ -18,6 +20,7 @@ There are many features on our todo list, here are some quality-of-life ones.
 - Easy to use Windows installer
 - WinLep image viewer
 - Windows shell extension to easily convert JPEGs to WinLep and vice versa. Meaning whenever you right-click on a JPEG image an option will pop up in the menu to convert it to WinLep, and when you right-click a WinLep image an option will show up to convert it to JPEG.
+- WinLep property handler DLL
 
 # How to use WinLep 
 \*Note: This manual is more or less the same as WinLep's help page
