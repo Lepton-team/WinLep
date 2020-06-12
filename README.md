@@ -59,16 +59,16 @@ There are many features on our todo list, here are some quality-of-life ones.
                 All original subdirectory names are preserved and created in the same structure
 ```                
 - **EXAMPLES**
-       ` WinLep test.jpg` --> Converts test.jpg and saves it as test.wlep
-        `WinLep test.wlep picture` --> Converts test.wlep and saves it as picture.jpg
-        `WinLep test.wlep pictures\` --> Converts test.wlep and saves it into pictures\test.jpg
-        `WinLep -w test.jpg out.wlep` --> Converts test.jpg and saves it as out.wlep
-        `WinLep -jd .` --> Converts all the .wlep images in the current directory to .jpg
-        `WinLep -d . wlep_images` --> Converts all the JPEG images in the current directory
+    -   ` WinLep test.jpg` --> Converts test.jpg and saves it as test.wlep
+    -   `WinLep test.wlep picture` --> Converts test.wlep and saves it as picture.jpg
+    -   `WinLep test.wlep pictures\` --> Converts test.wlep and saves it into pictures\test.jpg
+    -   `WinLep -w test.jpg out.wlep` --> Converts test.jpg and saves it as out.wlep
+    -   `WinLep -jd .` --> Converts all the .wlep images in the current directory to .jpg
+    -   `WinLep -d . wlep_images` --> Converts all the JPEG images in the current directory
                          and saves them into wlep_images folder.
-        `WinLep -wD .`--> Converts all JPEG images in the current directory and all of its subdirectories.
+    -   `WinLep -wD .`--> Converts all JPEG images in the current directory and all of its subdirectories.
                          Converted files are created in the same subfolders as the original ones.
-       ` WinLep -Dj . pics -v`--> Converts all .wlep images in the current folder to .jpg with additinal output and writes them in the subfolder 'pics' creating the original subfolder structure.
+    -   ` WinLep -Dj . pics -v`--> Converts all .wlep images in the current folder to .jpg with additinal output and writes them in the subfolder 'pics' creating the original subfolder structure.
 
 - **BUGS** 
     - Let us know.
