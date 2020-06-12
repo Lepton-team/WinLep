@@ -12,14 +12,13 @@ typedef unsigned char uChar;
 namespace wleputils {
 	class FileUtil {
 	public:
-		/**
-			Close a given file stream
-		*/
+
 		static inline void closeFileStream(uFstream &stream) {
 			if (stream && !stream.is_open()) {
 				stream.close();
 			}
 		}
+
 		/**
 			Open a file via stream in binary mode
 			If the path to the given filename doesn't exist and the file is open for writing
@@ -84,9 +83,6 @@ namespace wleputils {
 			return keys;
 		}
 
-		/**
-			Return a file extension of a given file
-		*/
 		static inline std::string getFileExtension(const std::string &filename) {
 			const std::string::size_type idx = filename.rfind('.');
 
@@ -131,7 +127,8 @@ namespace wleputils {
 						}
 					} else {
 						if (!file_extensions.empty()) {
-							const std::wstring extension = wleputils::FileUtil::getFileExtension(file.cFileName);
+							std::wstring extension = wleputils::FileUtil::getFileExtension(file.cFileName);
+							wleputils::StringUtil::toLowerCase(extension);
 							auto it = std::find(file_extensions.begin(), file_extensions.end(), extension);
 
 							if (it == file_extensions.end()) {
@@ -160,9 +157,6 @@ namespace wleputils {
 			}
 		}
 
-		/**
-			Check if a given directory exists
-		*/
 		static inline bool directoryExistsW(const std::wstring &path) {
 			DWORD attr = GetFileAttributesW(path.c_str());
 			return (attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_DIRECTORY));

@@ -13,7 +13,16 @@ namespace wleputils {
 			return str.size() >= suffix.size() && 0 == str.compare(str.size() - suffix.size(), suffix.size(), suffix);
 		}
 
+		// TODO: Merge duplicates
+
 		static inline void toLowerCase(std::string &str) {
+			std::transform(str.begin(), str.end(), str.begin(),
+						   [](unsigned char c) {
+							   return std::tolower(c);
+						   });
+		}
+
+		static inline void toLowerCase(std::wstring &str) {
 			std::transform(str.begin(), str.end(), str.begin(),
 						   [](unsigned char c) {
 							   return std::tolower(c);

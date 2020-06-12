@@ -24,7 +24,7 @@ wlep::WLepWriter::WLepWriter(const std::string &wlep_filename, const std::string
 	if (create_thumbnail) {
 		wlep::WLepImage *image = new wlep::WLepImage(jpg_filename);
 		IStream *thumbnail = nullptr;
-		image->createThumbnail(128);
+		image->createThumbnail(wlepconstants::thumbnail_side_length);
 		thumbnail = image->getThumbnailAsStream();
 
 		this->header = wlep::WLepHeader(thumbnail);
