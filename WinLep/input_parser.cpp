@@ -17,10 +17,10 @@ wlep::InputParser::InputParser(int &argc, char **argv) {
 			str_argv = str_argv.substr(1);
 			// If argv starts with --
 			if (str_argv[0] == '-') {
-				this->tokens_.push_back(str_argv);
+				this->flags_.push_back(str_argv);
 			} else {
 				for (int i = 0; i < str_argv.size(); i++) {
-					this->tokens_.push_back(std::string(1, str_argv[i]));
+					this->flags_.push_back(std::string(1, str_argv[i]));
 				}
 			}
 			// It's a me Mario
@@ -37,6 +37,6 @@ std::string wlep::InputParser::getOption(const int &index) {
 	return this->options_[index];
 }
 
-bool wlep::InputParser::cmdOptionExists(const std::string &option) const {
-	return std::find(this->tokens_.begin(), this->tokens_.end(), option) != this->tokens_.end();
+bool wlep::InputParser::cmdFlagExists(const std::string &option) const {
+	return std::find(this->flags_.begin(), this->flags_.end(), option) != this->flags_.end();
 }

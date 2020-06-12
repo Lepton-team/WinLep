@@ -12,7 +12,7 @@ namespace wleputils {
 	public:
 
 		/*
-			Returns a image format based on a file extension (e.g. "image/jpeg")
+			Return a image format based on a file extension (e.g. "image/jpeg")
 			If the given file extension isn't supported returns an empty string
 		*/
 		static inline std::wstring getImageFormat(std::string file_extension) {
@@ -41,7 +41,7 @@ namespace wleputils {
 		}
 
 		/*
-			Creates a Bitmap and paints the given image into it.
+			Create a Bitmap and paint the given image into it.
 		*/
 		static Gdiplus::Bitmap *gdiplusImageToBitmap(Gdiplus::Image *img, Gdiplus::Color background = Gdiplus::Color::Transparent) {
 			Gdiplus::Bitmap *bmp = nullptr;
@@ -65,7 +65,7 @@ namespace wleputils {
 		}
 
 		/*
-			Saves given image to the provided file name.
+			Save given image to the provided file name.
 			Filename must contain a extension!
 			Because based on it, it determines the image format
 		*/
@@ -93,7 +93,7 @@ namespace wleputils {
 			// -1 Because the last one is the filename
 			for (int i = 0; i < split.size() - 1; i++) {
 				dir += split[i] + "\\";
-			// Create all the necessary subfolders
+				// Create all the necessary subfolders
 				if (!directoryExists(dir)) {
 					if (!CreateDirectoryA(dir.c_str(), NULL)) {
 						std::string msg = "Error while creating folder " + dir;

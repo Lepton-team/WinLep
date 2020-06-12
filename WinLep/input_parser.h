@@ -6,7 +6,7 @@ namespace wlep {
 	class InputParser {
 	private:
 		// Flags e.g. -f --help
-		std::vector<std::string> tokens_;
+		std::vector<std::string> flags_;
 		// Other stuff, e.g. filenames, directories etc.
 		std::vector<std::string> options_;
 
@@ -14,7 +14,7 @@ namespace wlep {
 		InputParser(int &argc, char **argv);
 
 		std::string getOption(const int &index);
-		bool cmdOptionExists(const std::string &option) const;
+		bool cmdFlagExists(const std::string &option) const;
 	};
 }
 

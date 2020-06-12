@@ -105,7 +105,14 @@ bool validateInputFilename(const std::string &filename) {
 
 bool validateOutputFilename(std::string &out_filename, const std::string &in_filename) {
 	if (out_filename.empty()) {
-		out_filename = wleputils::FileUtil::getFileNameWithoutExtension(in_filename);
+		// TODO: ???????? 
+		std::string filename = wleputils::FileUtil::getFileNameWithoutExtension(in_filename);
+		const auto idx = filename.rfind('\\');
+		if (idx != std::string::npos) {
+			filename = filename.substr(idx + 1);
+		}
+		out_filename = filename;
+
 		if (g_convert_to_jpg) {
 			out_filename.append(wlepconstants::jpg_extension);
 		} else {
@@ -116,7 +123,7 @@ bool validateOutputFilename(std::string &out_filename, const std::string &in_fil
 
 	// It's a directory
 	// Find the last '\' 
-	auto idx = out_filename.rfind("\\");
+	const auto idx = out_filename.rfind("\\");
 	if (idx != std::string::npos) {
 		std::string filename = out_filename.substr(idx + 1);
 		std::string original_filename(filename);
@@ -125,7 +132,7 @@ bool validateOutputFilename(std::string &out_filename, const std::string &in_fil
 			return false;
 		}
 		if (original_filename != filename) {
-			auto index = out_filename.find(original_filename);
+			const auto index = out_filename.rfind(original_filename);
 			out_filename.replace(index, index + filename.length(), filename);
 		}
 		return true;
@@ -181,14 +188,17 @@ bool validateOutputFilename(std::string &out_filename, const std::string &in_fil
 void setupFilenames(const std::string &output_dir, const std::string &input_dir,
 					std::vector<std::string> &in_filenames, std::vector<std::string> &out_filenames, bool recursive) {
 	std::vector<std::string> file_extensions;
-	wlep::Directory *dir = new wlep::Directory(input_dir, recursive);
 	if (g_convert_to_jpg) {
 		// Omit the '.'
 		file_extensions = {wlepconstants::file_extension.substr(1)};
 	} else {
 		file_extensions = wleputils::FileUtil::getSupportedExtensions();
 	}
-	in_filenames = dir->getAllFiles(file_extensions);
+
+	wlep::Directory *dir = new wlep::Directory(input_dir, file_extensions, recursive);
+	in_filenames = dir->getAllFiles();
+
+	delete dir;
 	std::string out_extension = g_convert_to_jpg ? wlepconstants::jpg_extension : wlepconstants::file_extension;
 
 	if (g_verbose) {
@@ -207,7 +217,7 @@ void setupFilenames(const std::string &output_dir, const std::string &input_dir,
 			+ out_extension);
 	}
 
-	delete dir;
+	
 }
 std::string setupOutputDir(const std::string &dir) {
 	std::string output_dir = dir;
@@ -218,7 +228,7 @@ std::string setupOutputDir(const std::string &dir) {
 		std::cerr << "[INFO] Path to output directory: " << output_dir << "\n";
 	}
 	return output_dir;
-}
+	}
 
 int main(int argc, char **argv) {
 #ifndef _WIN32
@@ -240,42 +250,42 @@ int main(int argc, char **argv) {
 
 	wlep::InputParser input(argc, argv);
 
-	if (input.cmdOptionExists("-help") || input.cmdOptionExists("h")) {
+	if (input.cmdFlagExists("-help") || input.cmdFlagExists("h")) {
 		printHelp();
 		return 0;
 	}
 
-	if (input.cmdOptionExists("-verbose") || input.cmdOptionExists("v")) {
+	if (input.cmdFlagExists("-verbose") || input.cmdFlagExists("v")) {
 		g_verbose = true;
 	}
 
-	if (input.cmdOptionExists("r")) {
+	if (input.cmdFlagExists("r")) {
 		g_delete_original = true;
 	}
 
-	if (input.cmdOptionExists("j")) {
+	if (input.cmdFlagExists("j")) {
 		// Convert wlep to jpg
 		g_convert_to_jpg = true;
 	}
 
-	if (input.cmdOptionExists("J")) {
+	if (input.cmdFlagExists("J")) {
 		// Convert wlep to jpg and delete original jpgs
 		g_convert_to_jpg = true;
 		g_delete_original = true;
 	}
 
-	if (input.cmdOptionExists("w")) {
+	if (input.cmdFlagExists("w")) {
 		// Convert jpg to wlep
 		g_convert_to_jpg = false;
 	}
 
-	if (input.cmdOptionExists("W")) {
+	if (input.cmdFlagExists("W")) {
 		// Convert jpg to wlep and delete original wleps
 		g_convert_to_jpg = false;
 		g_delete_original = true;
 	}
 
-	if (input.cmdOptionExists("d")) {
+	if (input.cmdFlagExists("d")) {
 		// Convert whole directory
 		input_dir = input.getOption(0); // 0 - index ...
 		if (input_dir.empty()) {
@@ -286,7 +296,7 @@ int main(int argc, char **argv) {
 
 		output_dir = setupOutputDir(input.getOption(1));
 		setupFilenames(output_dir, input_dir, in_filenames, out_filenames, false);
-	} else if (input.cmdOptionExists("D")) {
+	} else if (input.cmdFlagExists("D")) {
 		// Convert whole directory and all of it's subdirectories
 		input_dir = input.getOption(0);
 		if (input_dir.empty()) {
@@ -298,7 +308,7 @@ int main(int argc, char **argv) {
 		output_dir = setupOutputDir(input.getOption(1));
 		setupFilenames(output_dir, input_dir, in_filenames, out_filenames, true);
 		// It must be a single file, right ?
-	} else if (!input.cmdOptionExists("d") || !input.cmdOptionExists("D")) {
+	} else if (!input.cmdFlagExists("d") || !input.cmdFlagExists("D")) {
 		const std::string in_filename = input.getOption(0);
 		if (!validateInputFilename(in_filename)) {
 			const std::string desc = "Supported file extensions are " + wlepconstants::sup_extensions;
@@ -319,7 +329,7 @@ int main(int argc, char **argv) {
 			return -1;
 		}
 
-		in_filenames.push_back(input.getOption(0));
+		in_filenames.push_back(in_filename);
 		out_filenames.push_back(out_filename);
 	} else {
 		wleputils::ExceptionUtil::printErrorMsg("Unknown option!");

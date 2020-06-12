@@ -12,16 +12,16 @@ typedef unsigned char uChar;
 namespace wleputils {
 	class FileUtil {
 	public:
-		/*
-			Closes a given file stream
+		/**
+			Close a given file stream
 		*/
 		static inline void closeFileStream(uFstream &stream) {
 			if (stream && !stream.is_open()) {
 				stream.close();
 			}
 		}
-		/*
-			Opens a file via stream in binary mode
+		/**
+			Open a file via stream in binary mode
 			If the path to the given filename doesn't exist and the file is open for writing
 			it'll be created so the desired file can be created
 		*/
@@ -36,7 +36,7 @@ namespace wleputils {
 			}
 
 			// Create file only when writing to it
-			if (mode & std::ios::out) { 
+			if (mode & std::ios::out) {
 				std::wstring wide_filename = wleputils::StringUtil::toWideString(filename);
 				std::vector<std::wstring> split = wleputils::StringUtil::split(wide_filename, L"\\");
 				std::wstring dir = L"";
@@ -84,8 +84,8 @@ namespace wleputils {
 			return keys;
 		}
 
-		/*
-			Returns a file extension of a given file
+		/**
+			Return a file extension of a given file
 		*/
 		static inline std::string getFileExtension(const std::string &filename) {
 			const std::string::size_type idx = filename.rfind('.');
@@ -97,8 +97,71 @@ namespace wleputils {
 			return "";
 		}
 
-		/*
-			Checks if a given directory exists
+		static inline std::wstring getFileExtension(const std::wstring &filename) {
+			const std::wstring::size_type idx = filename.rfind('.');
+
+			if (idx != std::wstring::npos) {
+				return filename.substr(idx + 1);
+			}
+
+			return L"";
+		}
+
+		/**
+			Find all files in a current directory and save them to @param files.
+
+			@param directory - Path to desired directory
+			@param files - Where to save the found filenames
+			@param file_extensions - Find only files that have the specified extentions
+								   - If empty, ignore file extensions
+			@param recursive - Find files in all subfolders
+		*/
+		static void findFiles(const std::wstring &directory, std::vector<std::wstring> &files,
+							  const std::vector<std::wstring> &file_extensions, bool recursive) {
+			std::wstring tmp = directory + L"\\*";
+			WIN32_FIND_DATAW file;
+			HANDLE search_handle = FindFirstFileW(tmp.c_str(), &file);
+			if (search_handle != INVALID_HANDLE_VALUE) {
+				std::vector<std::wstring> directories;
+				do {
+					if (file.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+						// Ignore . and .. directories
+						if (!lstrcmpW(file.cFileName, L".") || !lstrcmpW(file.cFileName, L"..")) {
+							continue;
+						}
+					} else {
+						if (!file_extensions.empty()) {
+							const std::wstring extension = wleputils::FileUtil::getFileExtension(file.cFileName);
+							auto it = std::find(file_extensions.begin(), file_extensions.end(), extension);
+
+							if (it == file_extensions.end()) {
+								continue;
+							}
+						}
+						// If file_extensions are empty, get all files
+						tmp = directory + L"\\" + std::wstring(file.cFileName);
+						files.push_back(tmp);
+					}
+					tmp = directory + L"\\" + std::wstring(file.cFileName);
+					if (file.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+						directories.push_back(tmp);
+					}
+				} while (FindNextFileW(search_handle, &file));
+
+				if (!FindClose(search_handle)) {
+					wleputils::ExceptionUtil::throwAndPrintException
+						<std::exception>("Error while closing handle used for finding files!");
+				}
+				if (recursive) {
+					for (auto it = directories.begin(), end = directories.end(); it != end; it++) {
+						findFiles(*it, files, file_extensions, recursive);
+					}
+				}
+			}
+		}
+
+		/**
+			Check if a given directory exists
 		*/
 		static inline bool directoryExistsW(const std::wstring &path) {
 			DWORD attr = GetFileAttributesW(path.c_str());
@@ -120,9 +183,9 @@ namespace wleputils {
 			Including tellp, which is required to return -1 if any previous operation has failed.
 		*/
 
-		/*
-			Writes any vector to a file
-			Returns the bytes written
+		/**
+			Write any vector to a file
+			Return the bytes written
 		*/
 		template<typename T>
 		static size_t writeToFile(uFstream &file, std::vector<T> &data) {
@@ -139,9 +202,9 @@ namespace wleputils {
 			return pos < 0 ? -1 : pos - before;
 		}
 
-		/*
-			Writes any array to a file
-			Returns the bytes written
+		/**
+			Write any array to a file
+			Return the bytes written
 		*/
 		template<typename T>
 		static size_t writeToFile(uFstream &file, T *data, size_t size) {
@@ -158,9 +221,9 @@ namespace wleputils {
 			return pos < 0 ? -1 : pos - before;
 		}
 
-		/*
-			Writes any single item to a file
-			Returns the bytes written
+		/**
+			Write any single item to a file
+			Return the bytes written
 		*/
 		template<typename T>
 		static size_t writeToFile(uFstream &file, T &t) {
