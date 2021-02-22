@@ -26,6 +26,9 @@
 bool g_convert_to_jpg = false;
 bool g_delete_original = false;
 bool g_verbose = false;
+const std::wstring g_lepton_exe = L"lepton.exe";
+const std::wstring g_lepton_args = L"-skiproundtrip -";
+
 void printHelp();
 
 void printWinLepVersion() {
@@ -40,6 +43,26 @@ double diffClock(clock_t clock1, clock_t clock2) {
 	return diffms;
 }
 
+const std::wstring getModuleDirectory() {
+	WCHAR *module_name = new WCHAR[MAX_PATH];
+	DWORD module_name_size = GetModuleFileNameW(NULL, module_name, MAX_PATH);
+
+	if (module_name_size == 0) {
+		wleputils::ExceptionUtil::throwAndPrintException
+			<std::exception>("Cannot find current module name!", GetLastError());
+	}
+
+	const std::wstring module_name_str = std::wstring(module_name);
+	const auto idx = module_name_str.rfind(L"\\");
+
+	if (idx == std::string::npos) {
+		wleputils::ExceptionUtil::throwAndPrintException
+			<std::exception>("Invalid module path!");
+	}
+
+	return module_name_str.substr(0, idx + 1);
+}
+
 size_t convertAndWriteFiles(std::vector<std::string> &in_filenames, std::vector<std::string> &out_filenames) {
 	// Both vectors should have the same size 
 	// since every input filename should have a corresponding output filename
@@ -48,6 +71,8 @@ size_t convertAndWriteFiles(std::vector<std::string> &in_filenames, std::vector<
 		return 0;
 	}
 
+	const std::wstring module_dir_path = getModuleDirectory();
+
 	size_t bytes_written = 0;
 	size_t total_bytes_written = 0;
 	for (int i = 0; i < in_filenames.size(); i++) {
@@ -55,21 +80,23 @@ size_t convertAndWriteFiles(std::vector<std::string> &in_filenames, std::vector<
 			std::cerr << "[INFO] Converting " << in_filenames[i] << " . . .\n";
 		}
 
+		// TODO: Pridat currentDir ako arg zapisovaca (GetCurrentDirectory)
+		// Prepend-nut currentDir pred nazvy vstupnych suborov ???
 		clock_t start = std::clock();
 		if (g_convert_to_jpg) {
 			wlep::WLepReader reader(in_filenames[i]);
 			std::vector<uChar> lepton_data = reader.validateFileAndReadLeptonData();
-			wlep::WLepWriter writer(in_filenames[i], out_filenames[i], false);
+			wlep::WLepWriter writer(in_filenames[i], out_filenames[i], module_dir_path, g_lepton_exe, g_lepton_args, false);
 			bytes_written = writer.writeJpgFile(lepton_data);
 		} else {
-			wlep::WLepWriter writer(out_filenames[i], in_filenames[i]);
+			wlep::WLepWriter writer(out_filenames[i], in_filenames[i], module_dir_path, g_lepton_exe, g_lepton_args);
 			bytes_written = writer.writeWinLepFile();
 		}
 
 		clock_t end = std::clock();
 		total_bytes_written += bytes_written;
 		std::cerr << "[INFO] Sucessfully converted " << in_filenames[i] << " --> " << out_filenames[i]
-			<< " (" << bytes_written / 1000.0f << "kB) [" << diffClock(end, start) << "ms]\n";
+			<< " (" << bytes_written / 1024.0f << "kB) [" << diffClock(end, start) << "ms]\n";
 
 		if (g_delete_original) {
 			std::remove(in_filenames[i].c_str());
@@ -356,7 +383,7 @@ int main(int argc, char **argv) {
 		: "[TOTAL] Wrote and converted ";
 
 	std::cerr << msg << in_filenames.size()
-		<< " images (" << total_bytes_written / 1000.0f << "kB) [" << total_time << "ms]\n";
+		<< " images (" << total_bytes_written / 1024.0f << "kB) [" << total_time << "ms]\n";
 
 	return 0;
 }

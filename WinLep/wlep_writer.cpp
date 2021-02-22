@@ -1,4 +1,5 @@
 #define DEBUG
+//#define TIME
 //#define PRINT_THUMBNAIL
 
 #include "wlep_writer.h"
@@ -13,10 +14,23 @@
 #include <ctime>
 #endif // TIME
 
-wlep::WLepWriter::WLepWriter(const std::string &wlep_filename, const std::string &jpg_filename, bool create_thumbnail) {
+wlep::WLepWriter::WLepWriter(const std::string &wlep_filename, const std::string &jpg_filename, 
+							 const std::wstring &module_dir_path, const std::wstring &lepton_exe, const std::wstring &lepton_args, bool create_thumbnail) {
 	if (wlep_filename.empty() || jpg_filename.empty()) {
 		wleputils::ExceptionUtil::throwAndPrintException<std::invalid_argument>("Filename cannot be empty!");
 	}
+
+	if (lepton_exe.empty()) {
+		wleputils::ExceptionUtil::throwAndPrintException<std::invalid_argument>("Lepton executable cannot be empty!");
+	}
+
+	if (lepton_args.empty()) {
+		wleputils::ExceptionUtil::throwAndPrintException<std::invalid_argument>("Lepton arguments cannot be empty!");
+	}
+
+	this->lepton_exe_ = lepton_exe;
+	this->lepton_args_ = lepton_args;
+	this->module_dir_path_ = module_dir_path;
 
 	this->wlep_filename_ = wlep_filename;
 	this->jpg_filename_ = jpg_filename;
@@ -48,7 +62,7 @@ wlep::WLepWriter::~WLepWriter() {
 }
 
 #ifdef TIME
-double diffClock(clock_t clock1, clock_t clock2) {
+double clockDiff(clock_t clock1, clock_t clock2) {
 	double diffticks = clock1 - (double)clock2;
 	double diffms = (diffticks) / (CLOCKS_PER_SEC / 1000);
 	return diffms;
@@ -68,7 +82,7 @@ size_t wlep::WLepWriter::writeHeader() {
 
 	for (int i = 0; i < items_to_write; i++) {
 		if (bytes_written_items[i] <= 0) {
-			wleputils::ExceptionUtil::throwAndPrintException<std::invalid_argument>("Error while writing the WinLep header");
+			wleputils::ExceptionUtil::throwAndPrintException<std::invalid_argument>("Error while writing WinLep header");
 		}
 		bytes_written += bytes_written_items[i];
 	}
@@ -77,7 +91,7 @@ size_t wlep::WLepWriter::writeHeader() {
 }
 
 size_t wlep::WLepWriter::writeLeptonData() {
-	wlep::LeptonConverter converter;
+	wlep::LeptonConverter converter(this->module_dir_path_, this->lepton_exe_, this->lepton_args_);
 #ifdef TIME
 	clock_t start = std::clock();
 #endif // TIME
@@ -86,10 +100,20 @@ size_t wlep::WLepWriter::writeLeptonData() {
 
 #ifdef TIME
 	clock_t end = std::clock();
-	std::cerr << "[TIME] Converting to lepton took " << diffClock(end, start) << "ms\n";
+	std::cerr << "[TIME] Converting to lepton took " << clockDiff(end, start) << "ms\n";
 #endif // TIME
 
-	return wleputils::FileUtil::writeToFile<uChar>(this->wlep_file_, lepton_data);
+#ifdef TIME
+	start = std::clock();
+#endif // TIME
+
+	auto res = wleputils::FileUtil::writeToFile<uChar>(this->wlep_file_, lepton_data);
+#ifdef TIME
+	end = std::clock();
+	std::cerr << "[TIME] Writing to file took " << clockDiff(end, start) << "ms\n";
+#endif // TIME
+
+	return res;
 }
 
 size_t wlep::WLepWriter::writeWinLepFile() {
@@ -103,7 +127,7 @@ size_t wlep::WLepWriter::writeWinLepFile() {
 
 #ifdef TIME
 	clock_t end = std::clock();
-	std::cerr << "[TIME] Writing header took " << diffClock(end, start) << "ms\n";
+	std::cerr << "[TIME] Writing header took " << clockDiff(end, start) << "ms\n";
 #endif // TIME
 
 	size_t lepton_data_written = writeLeptonData();
@@ -113,7 +137,7 @@ size_t wlep::WLepWriter::writeWinLepFile() {
 }
 
 size_t wlep::WLepWriter::writeJpgFile(std::vector<uChar> &lepton_data, bool clear_lepton_data) {
-	wlep::LeptonConverter converter;
+	wlep::LeptonConverter converter(this->module_dir_path_, this->lepton_exe_, this->lepton_args_);
 	std::vector<uChar> jpg_data = converter.convertLeptonToJpg(lepton_data);
 
 	if (clear_lepton_data) {

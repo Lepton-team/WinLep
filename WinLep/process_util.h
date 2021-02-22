@@ -50,7 +50,7 @@ namespace wleputils {
 			}
 		}
 
-		static bool launchProcess(const std::string &executable, const std::string &args,
+		static bool launchProcess(const std::wstring &module_dir_path, const std::wstring &executable, const std::wstring &args,
 								  HANDLE &child_out_write, HANDLE &child_in_read) {
 			PROCESS_INFORMATION proc_info;
 			STARTUPINFOW start_info;
@@ -61,27 +61,26 @@ namespace wleputils {
 			start_info.cb = sizeof(start_info);
 			start_info.hStdError = stderr; // GetStdHandle(STD_ERROR_HANDLE); // TODO: Suprress ?
 			start_info.hStdOutput = child_out_write;
-			start_info.hStdInput = child_in_read; // TODO: input_file_handle ?
+			start_info.hStdInput = child_in_read;
 			start_info.dwFlags |= STARTF_USESTDHANDLES;
+			
+			std::wstring app_exe = module_dir_path + executable;
+			std::wstring input = app_exe + L" " + args;
 
-			// Prepare CreateProcess args
-			std::wstring exe = wleputils::StringUtil::toWideString(executable);
-			std::wstring w_args = wleputils::StringUtil::toWideString(args);
-			std::wstring input = exe + L" " + w_args;
-			wchar_t *args_concat = const_cast<wchar_t *>(input.c_str());
-			const wchar_t *app_exe = exe.c_str();
+			//std::wcout << "Executable: " << executable << std::endl;
+			//std::wcout << "Input: " << input << std::endl;
 
 			// Start the child process.
 			// With CreateProcessW there's no need to set the arv[0] as the executable (itself)
 			if (!CreateProcessW(
-				app_exe,        // app path
-				args_concat,    // Command line (needs to include app path as first argument. args seperated by whitepace)
+				app_exe.c_str(),        // app path
+				const_cast<wchar_t *>(input.c_str()),    // Command line (needs to include app path as first argument. args seperated by whitepace)
 				NULL,           // Process handle not inheritable
 				NULL,           // Thread handle not inheritable
 				TRUE,           // Set handle inheritance to TRUE
 				0,              // No creation flags
 				NULL,           // Use parent's environment block
-				NULL,           // Use parent's starting directory
+				module_dir_path.c_str(),           // Use parent's starting directory
 				&start_info,    // Pointer to STARTUPINFO structure
 				&proc_info)     // Pointer to PROCESS_INFORMATION structure
 				) {
