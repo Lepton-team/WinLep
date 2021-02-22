@@ -15,7 +15,6 @@ namespace wlep {
 		std::wstring lepton_args_;
 
 		size_t writeHeader();
-		size_t writeLeptonData();
 
 	public:
 		wlep::WLepHeader header;

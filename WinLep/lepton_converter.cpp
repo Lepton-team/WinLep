@@ -41,6 +41,7 @@ std::vector<BYTE> wlep::LeptonConverter::convertJpgToLepton(const std::wstring &
 	if (input_file_handle == INVALID_HANDLE_VALUE) {
 		std::wstring w_msg = L"Error while opening file " + jpg_filename + L" !";
 		std::string msg = wleputils::StringUtil::wideStringToString(w_msg);
+
 		wleputils::ExceptionUtil::throwAndPrintException
 			<std::exception>(msg);
 	}

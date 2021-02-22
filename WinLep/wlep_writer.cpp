@@ -90,14 +90,29 @@ size_t wlep::WLepWriter::writeHeader() {
 	return bytes_written;
 }
 
-size_t wlep::WLepWriter::writeLeptonData() {
+size_t wlep::WLepWriter::writeWinLepFile() {
+	wleputils::FileUtil::openFileStream(this->wlep_file_, this->wlep_filename_, std::ios::out);
+
+#ifdef TIME
+	clock_t start = std::clock();
+#endif // TIME
+
 	wlep::LeptonConverter converter(this->module_dir_path_, this->lepton_exe_, this->lepton_args_);
+
 #ifdef TIME
 	clock_t start = std::clock();
 #endif // TIME
 	std::wstring wide_filename = wleputils::StringUtil::toWideString(this->jpg_filename_);
-	std::vector<uChar> lepton_data = converter.convertJpgToLepton(wide_filename);
-
+	std::vector<uChar> lepton_data = std::vector<uChar>(); 
+	
+	try {
+		lepton_data = converter.convertJpgToLepton(wide_filename);
+	} catch (std::exception ex) {
+		wleputils::ExceptionUtil::printErrorMsg("Error while converting Lepton to jpg - " + std::string(ex.what()));
+	} catch (...) {
+		wleputils::ExceptionUtil::printErrorMsg("Error while converting Lepton to jpg - Other exception");
+	}
+	
 #ifdef TIME
 	clock_t end = std::clock();
 	std::cerr << "[TIME] Converting to lepton took " << clockDiff(end, start) << "ms\n";
@@ -107,50 +122,62 @@ size_t wlep::WLepWriter::writeLeptonData() {
 	start = std::clock();
 #endif // TIME
 
-	auto res = wleputils::FileUtil::writeToFile<uChar>(this->wlep_file_, lepton_data);
+	size_t bytes_written = -1;
+
+	if (!lepton_data.empty()) {
+		bytes_written = writeHeader();
+		bytes_written += wleputils::FileUtil::writeToFile<uChar>(this->wlep_file_, lepton_data);
+	}
+
+	if (bytes_written == -1) {
+		wleputils::ExceptionUtil::printErrorMsg("No bytes written to file '" + this->wlep_filename_ + "' !");
+	}
+
 #ifdef TIME
 	end = std::clock();
 	std::cerr << "[TIME] Writing to file took " << clockDiff(end, start) << "ms\n";
 #endif // TIME
-
-	return res;
-}
-
-size_t wlep::WLepWriter::writeWinLepFile() {
-	wleputils::FileUtil::openFileStream(this->wlep_file_, this->wlep_filename_, std::ios::out);
-
-#ifdef TIME
-	clock_t start = std::clock();
-#endif // TIME
-
-	size_t header_written = writeHeader();
 
 #ifdef TIME
 	clock_t end = std::clock();
 	std::cerr << "[TIME] Writing header took " << clockDiff(end, start) << "ms\n";
 #endif // TIME
 
-	size_t lepton_data_written = writeLeptonData();
 	wleputils::FileUtil::closeFileStream(this->wlep_file_);
 
-	return header_written + lepton_data_written;
+	return bytes_written;
 }
 
 size_t wlep::WLepWriter::writeJpgFile(std::vector<uChar> &lepton_data, bool clear_lepton_data) {
 	wlep::LeptonConverter converter(this->module_dir_path_, this->lepton_exe_, this->lepton_args_);
-	std::vector<uChar> jpg_data = converter.convertLeptonToJpg(lepton_data);
+	std::vector<uChar> jpg_data = std::vector<uChar>();
+
+	try {
+		jpg_data = converter.convertLeptonToJpg(lepton_data);
+	} catch (std::exception ex) {
+		wleputils::ExceptionUtil::printErrorMsg("Error while converting Lepton to jpg - " + std::string(ex.what()));
+	} catch (...) {
+		wleputils::ExceptionUtil::printErrorMsg("Error while converting Lepton to jpg - Other exception");
+	}
 
 	if (clear_lepton_data) {
 		lepton_data.clear();
 		lepton_data = std::vector<uChar>();
 	}
 
-	wlep::WLepImage *image = new wlep::WLepImage(jpg_data, this->jpg_filename_);
-	image->save();
+	size_t bytes_written = -1;
 
-	delete image;
+	if (!jpg_data.empty()) {
+		wleputils::FileUtil::openFileStream(this->jpg_file_, this->jpg_filename_, std::ios::out);
+		bytes_written = wleputils::FileUtil::writeToFile<uChar>(this->jpg_file_, jpg_data);
+		wleputils::FileUtil::closeFileStream(this->jpg_file_);
+	}
 
-	return jpg_data.size();
+	if (bytes_written == -1) {
+		wleputils::ExceptionUtil::printErrorMsg("No bytes written to file '" + this->jpg_filename_ + "' !");
+	}
+
+	return bytes_written;
 }
 
 std::string wlep::WLepWriter::debug_str() {

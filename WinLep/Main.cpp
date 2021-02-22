@@ -93,6 +93,11 @@ size_t convertAndWriteFiles(std::vector<std::string> &in_filenames, std::vector<
 			bytes_written = writer.writeWinLepFile();
 		}
 
+		if (bytes_written == -1) {
+			wleputils::ExceptionUtil::printErrorMsg("Error while converting file!");
+			continue;
+		}
+
 		clock_t end = std::clock();
 		total_bytes_written += bytes_written;
 		std::cerr << "[INFO] Sucessfully converted " << in_filenames[i] << " --> " << out_filenames[i]
