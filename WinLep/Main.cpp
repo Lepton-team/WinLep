@@ -44,24 +44,67 @@ double diffClock(clock_t clock1, clock_t clock2) {
 	return diffms;
 }
 
+void splitString(std::wstring const &str, std::wstring const &delimiter, std::vector<std::wstring> &out) {
+	size_t start;
+	size_t end = 0;
+
+	while ((start = str.find_first_not_of(delimiter, end)) != std::wstring::npos) {
+		end = str.find(delimiter, start);
+		out.push_back(str.substr(start, end - start));
+	}
+
+}
+
 const std::wstring getModuleDirectory() {
-	WCHAR *module_name = new WCHAR[MAX_PATH];
-	DWORD module_name_size = GetModuleFileNameW(NULL, module_name, MAX_PATH);
+	
+	DWORD bufferSize = 65535;
+	std::wstring path_buff;
 
-	if (module_name_size == 0) {
+	path_buff.resize(bufferSize);
+	bufferSize = GetEnvironmentVariableW(L"PATH", &path_buff[0], bufferSize);
+	
+	if (!bufferSize) {
 		wleputils::ExceptionUtil::throwAndPrintException
-			<std::exception>("Cannot find current module name!", GetLastError());
+			<std::exception>("Error while reading PATH variable!");
+	}
+	
+	path_buff.resize(bufferSize);
+
+	if (!path_buff.find(L"\\WinLep")) {
+		wleputils::ExceptionUtil::throwAndPrintException
+			<std::exception>("Please install WinLep first!");
 	}
 
-	const std::wstring module_name_str = std::wstring(module_name);
-	const auto idx = module_name_str.rfind(L"\\");
+	const std::wstring path_delimiter = L";";
 
-	if (idx == std::string::npos) {
-		wleputils::ExceptionUtil::throwAndPrintException
-			<std::exception>("Invalid module path!");
-	}
+	std::vector<std::wstring> paths;
+	splitString(path_buff, path_delimiter, paths);
 
-	return module_name_str.substr(0, idx + 1);
+	auto it = std::find_if(paths.begin(), paths.end(),
+				 [](const std::wstring &val) {
+					 return val.find(L"\\WinLep") != std::wstring::npos;
+				 }
+	);
+
+	//WCHAR *module_name = new WCHAR[MAX_PATH];
+	//DWORD module_name_size = GetModuleFileNameW(NULL, module_name, MAX_PATH);
+
+	//if (module_name_size == 0) {
+	//	wleputils::ExceptionUtil::throwAndPrintException
+	//		<std::exception>("Cannot find current module name!", GetLastError());
+	//}
+
+	//const std::wstring module_name_str = std::wstring(module_name);
+	//const auto idx = module_name_str.rfind(L"\\");
+
+	//const auto idx = (*it).rfind(L"\\");
+
+	//if (idx == std::string::npos) {
+	//	wleputils::ExceptionUtil::throwAndPrintException
+	//		<std::exception>("Invalid module path!");
+	//}
+
+	return *it;
 }
 
 size_t convertAndWriteFiles(std::vector<std::string> &in_filenames, std::vector<std::string> &out_filenames) {
