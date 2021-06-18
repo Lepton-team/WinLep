@@ -14,8 +14,11 @@
 #include <ctime>
 #endif // TIME
 
-wlep::WLepWriter::WLepWriter(const std::string &wlep_filename, const std::string &jpg_filename, 
-							 const std::wstring &module_dir_path, const std::wstring &lepton_exe, const std::wstring &lepton_args, bool create_thumbnail) {
+wlep::WLepWriter::WLepWriter(const std::string &wlep_filename,
+			     const std::string &jpg_filename,
+			     const std::wstring &lepton_exe,
+			     const std::wstring &lepton_args,
+			     bool create_thumbnail) {
 	if (wlep_filename.empty() || jpg_filename.empty()) {
 		wleputils::ExceptionUtil::throwAndPrintException<std::invalid_argument>("Filename cannot be empty!");
 	}
@@ -30,7 +33,6 @@ wlep::WLepWriter::WLepWriter(const std::string &wlep_filename, const std::string
 
 	this->lepton_exe_ = lepton_exe;
 	this->lepton_args_ = lepton_args;
-	this->module_dir_path_ = module_dir_path;
 
 	this->wlep_filename_ = wlep_filename;
 	this->jpg_filename_ = jpg_filename;
@@ -97,7 +99,7 @@ size_t wlep::WLepWriter::writeWinLepFile() {
 	clock_t start = std::clock();
 #endif // TIME
 
-	wlep::LeptonConverter converter(this->module_dir_path_, this->lepton_exe_, this->lepton_args_);
+	wlep::LeptonConverter converter(this->lepton_exe_, this->lepton_args_);
 
 #ifdef TIME
 	clock_t start = std::clock();
@@ -149,7 +151,7 @@ size_t wlep::WLepWriter::writeWinLepFile() {
 }
 
 size_t wlep::WLepWriter::writeJpgFile(std::vector<uChar> &lepton_data, bool clear_lepton_data) {
-	wlep::LeptonConverter converter(this->module_dir_path_, this->lepton_exe_, this->lepton_args_);
+	wlep::LeptonConverter converter(this->lepton_exe_, this->lepton_args_);
 	std::vector<uChar> jpg_data = std::vector<uChar>();
 
 	try {

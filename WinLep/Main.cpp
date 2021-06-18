@@ -55,58 +55,6 @@ void splitString(std::wstring const &str, std::wstring const &delimiter, std::ve
 
 }
 
-const std::wstring getModuleDirectory() {
-	
-	DWORD bufferSize = 65535;
-	std::wstring path_buff;
-
-	path_buff.resize(bufferSize);
-	bufferSize = GetEnvironmentVariableW(L"PATH", &path_buff[0], bufferSize);
-	
-	if (!bufferSize) {
-		wleputils::ExceptionUtil::throwAndPrintException
-			<std::exception>("Error while reading PATH variable!");
-	}
-	
-	path_buff.resize(bufferSize);
-
-	if (!path_buff.find(L"\\WinLep")) {
-		wleputils::ExceptionUtil::throwAndPrintException
-			<std::exception>("Please install WinLep first!");
-	}
-
-	const std::wstring path_delimiter = L";";
-
-	std::vector<std::wstring> paths;
-	splitString(path_buff, path_delimiter, paths);
-
-	auto it = std::find_if(paths.begin(), paths.end(),
-				 [](const std::wstring &val) {
-					 return val.find(L"\\WinLep") != std::wstring::npos;
-				 }
-	);
-
-	//WCHAR *module_name = new WCHAR[MAX_PATH];
-	//DWORD module_name_size = GetModuleFileNameW(NULL, module_name, MAX_PATH);
-
-	//if (module_name_size == 0) {
-	//	wleputils::ExceptionUtil::throwAndPrintException
-	//		<std::exception>("Cannot find current module name!", GetLastError());
-	//}
-
-	//const std::wstring module_name_str = std::wstring(module_name);
-	//const auto idx = module_name_str.rfind(L"\\");
-
-	//const auto idx = (*it).rfind(L"\\");
-
-	//if (idx == std::string::npos) {
-	//	wleputils::ExceptionUtil::throwAndPrintException
-	//		<std::exception>("Invalid module path!");
-	//}
-
-	return *it;
-}
-
 size_t convertAndWriteFiles(std::vector<std::string> &in_filenames, std::vector<std::string> &out_filenames) {
 	// Both vectors should have the same size 
 	// since every input filename should have a corresponding output filename
@@ -114,8 +62,6 @@ size_t convertAndWriteFiles(std::vector<std::string> &in_filenames, std::vector<
 		wleputils::ExceptionUtil::printErrorMsg("Provided filename vectors doesn't have the same size!");
 		return 0;
 	}
-
-	const std::wstring module_dir_path = getModuleDirectory();
 
 	size_t bytes_written = 0;
 	size_t total_bytes_written = 0;
@@ -130,10 +76,10 @@ size_t convertAndWriteFiles(std::vector<std::string> &in_filenames, std::vector<
 		if (g_convert_to_jpg) {
 			wlep::WLepReader reader(in_filenames[i]);
 			std::vector<uChar> lepton_data = reader.validateFileAndReadLeptonData();
-			wlep::WLepWriter writer(in_filenames[i], out_filenames[i], module_dir_path, g_lepton_exe, g_lepton_args, false);
+			wlep::WLepWriter writer(in_filenames[i], out_filenames[i], g_lepton_exe, g_lepton_args, false);
 			bytes_written = writer.writeJpgFile(lepton_data);
 		} else {
-			wlep::WLepWriter writer(out_filenames[i], in_filenames[i], module_dir_path, g_lepton_exe, g_lepton_args);
+			wlep::WLepWriter writer(out_filenames[i], in_filenames[i], g_lepton_exe, g_lepton_args);
 			bytes_written = writer.writeWinLepFile();
 		}
 

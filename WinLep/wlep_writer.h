@@ -10,7 +10,6 @@ namespace wlep {
 		uFstream jpg_file_;
 		std::string wlep_filename_;
 		std::string jpg_filename_;
-		std::wstring module_dir_path_;
 		std::wstring lepton_exe_;
 		std::wstring lepton_args_;
 
@@ -18,9 +17,11 @@ namespace wlep {
 
 	public:
 		wlep::WLepHeader header;
-		WLepWriter(const std::string &wlep_filename, const std::string &jpg_filename, 
-				   const std::wstring &module_dir_path, const std::wstring &lepton_exe,
-				   const std::wstring &lepton_args, bool create_thumbnail = true);
+		WLepWriter(const std::string &wlep_filename,
+			   const std::string &jpg_filename,
+			   const std::wstring &lepton_exe,
+			   const std::wstring &lepton_args,
+			   bool create_thumbnail = true);
 		~WLepWriter();
 
 		size_t writeWinLepFile();
