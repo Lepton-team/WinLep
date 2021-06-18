@@ -73,7 +73,7 @@ namespace wleputils {
 			// Start the child process.
 			// With CreateProcessW there's no need to set the arv[0] as the executable (itself)
 			if (!CreateProcessW(
-				app_exe.c_str(),        // app path
+				NULL,           // app path
 				const_cast<wchar_t *>(input.c_str()),    // Command line (needs to include app path as first argument. args seperated by whitepace)
 				NULL,           // Process handle not inheritable
 				NULL,           // Thread handle not inheritable
