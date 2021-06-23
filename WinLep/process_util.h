@@ -50,7 +50,7 @@ namespace wleputils {
 			}
 		}
 
-		static bool launchProcess(const std::string &executable, const std::string &args,
+		static bool launchProcess(const std::wstring &executable, const std::wstring &args,
 								  HANDLE &child_out_write, HANDLE &child_in_read) {
 			PROCESS_INFORMATION proc_info;
 			STARTUPINFOW start_info;
@@ -61,20 +61,19 @@ namespace wleputils {
 			start_info.cb = sizeof(start_info);
 			start_info.hStdError = stderr; // GetStdHandle(STD_ERROR_HANDLE); // TODO: Suprress ?
 			start_info.hStdOutput = child_out_write;
-			start_info.hStdInput = child_in_read; // TODO: input_file_handle ?
+			start_info.hStdInput = child_in_read;
 			start_info.dwFlags |= STARTF_USESTDHANDLES;
 
-			// Prepare CreateProcess args
-			std::wstring exe = wleputils::StringUtil::toWideString(executable);
-			std::wstring w_args = wleputils::StringUtil::toWideString(args);
-			std::wstring input = exe + L" " + w_args;
-			wchar_t *args_concat = const_cast<wchar_t *>(input.c_str());
+			std::wstring input = executable + L" " + args;
+
+			//std::wcout << "Executable: " << executable << std::endl;
+			//std::wcout << "Input: " << input << std::endl;
 
 			// Start the child process.
 			// With CreateProcessW there's no need to set the arv[0] as the executable (itself)
 			if (!CreateProcessW(
 				NULL,           // app path
-				args_concat,    // Command line (needs to include app path as first argument. args seperated by whitepace)
+				const_cast<wchar_t *>(input.c_str()),    // Command line (needs to include app path as first argument. args seperated by whitepace)
 				NULL,           // Process handle not inheritable
 				NULL,           // Thread handle not inheritable
 				TRUE,           // Set handle inheritance to TRUE

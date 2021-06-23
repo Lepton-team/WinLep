@@ -1,9 +1,20 @@
 #include "lepton_converter.h"
 #include "process_util.h"
 
+wlep::LeptonConverter::LeptonConverter(const std::wstring &lepton_exe, const std::wstring &lepton_args) {
+	if (lepton_exe.empty()) {
+		wleputils::ExceptionUtil::throwAndPrintException<std::invalid_argument>("Lepton executable cannot be empty!");
+	}
+
+	if (lepton_args.empty()) {
+		wleputils::ExceptionUtil::throwAndPrintException<std::invalid_argument>("Lepton arguments cannot be empty!");
+	}
+
+	this->lepton_exe_ = lepton_exe;
+	this->lepton_args_ = lepton_args;
+}
+
 std::vector<BYTE> wlep::LeptonConverter::convertJpgToLepton(const std::wstring &jpg_filename) {
-	const std::string lepton_exe = "lepton.exe";
-	const std::string lepton_args = "-skiproundtrip -";
 	std::vector<BYTE> lepton_data = std::vector<BYTE>();
 
 	// Pipe handles
@@ -29,12 +40,13 @@ std::vector<BYTE> wlep::LeptonConverter::convertJpgToLepton(const std::wstring &
 	if (input_file_handle == INVALID_HANDLE_VALUE) {
 		std::wstring w_msg = L"Error while opening file " + jpg_filename + L" !";
 		std::string msg = wleputils::StringUtil::wideStringToString(w_msg);
+
 		wleputils::ExceptionUtil::throwAndPrintException
 			<std::exception>(msg);
 	}
 
 	wleputils::ProcessUtil::createPipes(child_in_read, child_in_write, child_out_read, child_out_write, sec_attr);
-	bool is_process_launched = wleputils::ProcessUtil::launchProcess(lepton_exe, lepton_args, child_out_write, child_in_read);
+	bool is_process_launched = wleputils::ProcessUtil::launchProcess(this->lepton_exe_, this->lepton_args_, child_out_write, child_in_read);
 
 	if (!is_process_launched) {
 		wleputils::ExceptionUtil::throwAndPrintException
@@ -66,8 +78,6 @@ std::vector<BYTE> wlep::LeptonConverter::convertJpgToLepton(const std::wstring &
 }
 
 std::vector<BYTE> wlep::LeptonConverter::convertLeptonToJpg(std::vector<BYTE> &lepton_data) {
-	const std::string lepton_exe = "lepton.exe";
-	const std::string lepton_args = "-skiproundtrip -";
 
 	// Pipe handles
 	HANDLE child_in_read = NULL;
@@ -81,7 +91,7 @@ std::vector<BYTE> wlep::LeptonConverter::convertLeptonToJpg(std::vector<BYTE> &l
 	sec_attr.lpSecurityDescriptor = NULL;
 
 	wleputils::ProcessUtil::createPipes(child_in_read, child_in_write, child_out_read, child_out_write, sec_attr);
-	bool is_process_launched = wleputils::ProcessUtil::launchProcess(lepton_exe, lepton_args, child_out_write, child_in_read);
+	bool is_process_launched = wleputils::ProcessUtil::launchProcess(this->lepton_exe_, this->lepton_args_, child_out_write, child_in_read);
 
 	if (!is_process_launched) {
 		wleputils::ExceptionUtil::throwAndPrintException

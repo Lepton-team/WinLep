@@ -9,6 +9,7 @@
 #include "file_util.h"
 #include "directory.h"
 #include "input_parser.h"
+#include "wlep.h"
 
 /*
 	This code has been written according to Google's C++ style standards.
@@ -26,6 +27,9 @@
 bool g_convert_to_jpg = false;
 bool g_delete_original = false;
 bool g_verbose = false;
+const std::wstring g_lepton_exe = L"lepton.exe";
+const std::wstring g_lepton_args = L"-skiproundtrip -";
+
 void printHelp();
 
 void printWinLepVersion() {
@@ -38,6 +42,17 @@ double diffClock(clock_t clock1, clock_t clock2) {
 	double diffticks = clock1 - (double)clock2;
 	double diffms = (diffticks) / (CLOCKS_PER_SEC / 1000);
 	return diffms;
+}
+
+void splitString(std::wstring const &str, std::wstring const &delimiter, std::vector<std::wstring> &out) {
+	size_t start;
+	size_t end = 0;
+
+	while ((start = str.find_first_not_of(delimiter, end)) != std::wstring::npos) {
+		end = str.find(delimiter, start);
+		out.push_back(str.substr(start, end - start));
+	}
+
 }
 
 size_t convertAndWriteFiles(std::vector<std::string> &in_filenames, std::vector<std::string> &out_filenames) {
@@ -55,21 +70,28 @@ size_t convertAndWriteFiles(std::vector<std::string> &in_filenames, std::vector<
 			std::cerr << "[INFO] Converting " << in_filenames[i] << " . . .\n";
 		}
 
+		// TODO: Pridat currentDir ako arg zapisovaca (GetCurrentDirectory)
+		// Prepend-nut currentDir pred nazvy vstupnych suborov ???
 		clock_t start = std::clock();
 		if (g_convert_to_jpg) {
 			wlep::WLepReader reader(in_filenames[i]);
 			std::vector<uChar> lepton_data = reader.validateFileAndReadLeptonData();
-			wlep::WLepWriter writer(in_filenames[i], out_filenames[i], false);
+			wlep::WLepWriter writer(in_filenames[i], out_filenames[i], g_lepton_exe, g_lepton_args, false);
 			bytes_written = writer.writeJpgFile(lepton_data);
 		} else {
-			wlep::WLepWriter writer(out_filenames[i], in_filenames[i]);
+			wlep::WLepWriter writer(out_filenames[i], in_filenames[i], g_lepton_exe, g_lepton_args);
 			bytes_written = writer.writeWinLepFile();
+		}
+
+		if (bytes_written == -1) {
+			wleputils::ExceptionUtil::printErrorMsg("Error while converting file!");
+			continue;
 		}
 
 		clock_t end = std::clock();
 		total_bytes_written += bytes_written;
 		std::cerr << "[INFO] Sucessfully converted " << in_filenames[i] << " --> " << out_filenames[i]
-			<< " (" << bytes_written / 1000.0f << "kB) [" << diffClock(end, start) << "ms]\n";
+			<< " (" << bytes_written / 1024.0f << "kB) [" << diffClock(end, start) << "ms]\n";
 
 		if (g_delete_original) {
 			std::remove(in_filenames[i].c_str());
@@ -356,7 +378,7 @@ int main(int argc, char **argv) {
 		: "[TOTAL] Wrote and converted ";
 
 	std::cerr << msg << in_filenames.size()
-		<< " images (" << total_bytes_written / 1000.0f << "kB) [" << total_time << "ms]\n";
+		<< " images (" << total_bytes_written / 1024.0f << "kB) [" << total_time << "ms]\n";
 
 	return 0;
 }
